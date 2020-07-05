@@ -13,5 +13,5 @@ pub fn rocket(rocket: Rocket) -> Rocket {
         .mount("/api/org", routes![orgs::get, orgs::get_all])
         .mount("/api/trailor", routes![trailors::get, trailors::get_all])
         .mount("/api/log", routes![logs::get, logs::get_all])
-        .mount("/api/data", routes![data::get, data::get_all])
+        .mount("/api/data", routes![data::get, data::get_all, data::new_data])
 }

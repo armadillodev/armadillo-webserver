@@ -1,13 +1,19 @@
 use crate::RecordsDbConn;
 
-use rocket_contrib::json::Json;
 use diesel::prelude::*;
+use rocket_contrib::json::Json;
 
 #[derive(Queryable, Serialize, Deserialize)]
 pub struct TrailorData {
     pub id: i32,
     pub trailor: i32,
     pub timestamp: i32,
+    pub temperature: Option<i32>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct NewTrailorData {
+    pub trailor: i32,
     pub temperature: Option<i32>,
 }
 
@@ -34,4 +40,21 @@ pub fn get(conn: RecordsDbConn, id: i32) -> Option<Json<TrailorData>> {
         .pop()?;
 
     Some(Json(results))
+}
+
+#[post("/", format = "json", data = "<new_trailor_data>")]
+pub fn new_data(
+    conn: RecordsDbConn,
+    new_trailor_data: Json<NewTrailorData>,
+) -> Option<&'static str> {
+    use super::schema::trailor_data::dsl::*;
+    diesel::insert_into(trailor_data)
+        .values((
+            trailor.eq(new_trailor_data.trailor),
+            temperature.eq(new_trailor_data.temperature),
+        ))
+        .execute(&*conn)
+        .expect("Error saving trailor data");
+
+    Some("Ok")
 }

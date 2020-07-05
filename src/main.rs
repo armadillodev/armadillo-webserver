@@ -1,4 +1,5 @@
 #![feature(proc_macro_hygiene, decl_macro)]
+#![recursion_limit = "256"]
 
 #[macro_use]
 extern crate rocket;

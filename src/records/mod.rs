@@ -1,24 +1,19 @@
 use rocket::Rocket;
 use rocket_contrib::json::{Json, JsonValue};
 
-#[derive(Deserialize, Serialize)]
-#[repr(u8)]
-enum RecordStatus {
-    Ok,
-}
+use crate::models::*;
+use crate::RecordsDbConn;
 
-#[derive(Deserialize, Serialize)]
-struct RecordResponse {
-    status: RecordStatus,
-    value: u32,
-}
+use diesel::prelude::*;
 
 #[get("/")]
-fn get() -> Json<RecordResponse> {
-    Json(RecordResponse {
-        status: RecordStatus::Ok,
-        value: 5,
-    })
+fn get(conn: RecordsDbConn) -> Json<Vec<User>> {
+    use crate::schema::users::dsl::*;
+
+    let results = users.limit(5).load::<User>(&*conn).expect("Error loading posts");
+    let mut s = String::new();
+
+    Json(results)
 }
 
 pub fn rocket(rocket: Rocket) -> Rocket {

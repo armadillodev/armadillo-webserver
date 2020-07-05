@@ -16,22 +16,12 @@ mod models;
 use rocket::Rocket;
 use rocket_contrib::serve::StaticFiles;
 
-use diesel::prelude::*;
-
 #[database("sqlite_records")]
 struct RecordsDbConn(diesel::SqliteConnection);
 
 #[get("/")]
-fn index(conn: RecordsDbConn) -> String {
-    use schema::users::dsl::*;
-    use models::User;
-
-    let results = users.limit(5).load::<User>(&*conn).expect("Error loading posts");
-    let mut s = String::new();
-    for user in results {
-        s = format!("{}\n{}", s, user.first_name);
-    }
-    s
+fn index() -> &'static str{
+    "Hello World!"
 }
 
 fn rocket() -> Rocket {

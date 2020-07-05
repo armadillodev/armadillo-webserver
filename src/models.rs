@@ -1,10 +1,10 @@
-#[derive(Queryable)]
+#[derive(Queryable, Serialize, Deserialize)]
 pub struct Org {
     pub id: i32,
     pub name: String,
 }
 
-#[derive(Queryable)]
+#[derive(Queryable, Serialize, Deserialize)]
 pub struct Trailor {
     pub id: i32,
     pub name: String,
@@ -12,7 +12,7 @@ pub struct Trailor {
     pub org: Org,
 }
 
-#[derive(Queryable)]
+#[derive(Queryable, Serialize, Deserialize)]
 pub struct TrailorData {
     pub id: i32,
     pub trailor: Trailor,
@@ -20,7 +20,7 @@ pub struct TrailorData {
     pub temperature: Option<i32>,
 }
 
-#[derive(Queryable)]
+#[derive(Queryable, Serialize, Deserialize)]
 pub struct TrailorLog {
     pub id: i32,
     pub user: User,
@@ -29,7 +29,7 @@ pub struct TrailorLog {
     pub time_end: i32,
 }
 
-#[derive(Queryable)]
+#[derive(Queryable, Serialize, Deserialize)]
 pub struct User {
     pub id: i32,
     pub first_name: String,

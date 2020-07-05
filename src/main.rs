@@ -9,15 +9,13 @@ extern crate serde_derive;
 #[macro_use]
 extern crate diesel;
 
-mod records;
-mod schema;
-mod models;
+mod api;
 
 use rocket::Rocket;
 use rocket_contrib::serve::StaticFiles;
 
 #[database("sqlite_records")]
-struct RecordsDbConn(diesel::SqliteConnection);
+pub struct RecordsDbConn(diesel::SqliteConnection);
 
 #[get("/")]
 fn index() -> &'static str{
@@ -33,6 +31,6 @@ fn rocket() -> Rocket {
 
 fn main() {
     let mut app = rocket();
-    app = records::rocket(app);
+    app = api::rocket(app);
     app.launch();
 }

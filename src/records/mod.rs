@@ -11,7 +11,6 @@ fn get(conn: RecordsDbConn) -> Json<Vec<User>> {
     use crate::schema::users::dsl::*;
 
     let results = users.limit(5).load::<User>(&*conn).expect("Error loading posts");
-    let mut s = String::new();
 
     Json(results)
 }

@@ -22,6 +22,7 @@ pub fn get_all(conn: RecordsDbConn) -> Json<Vec<TrailorData>> {
     use super::schema::trailor_data::dsl::*;
 
     let results = trailor_data
+        .order(trailor_data_id.desc())
         .limit(100)
         .load::<TrailorData>(&*conn)
         .expect("Database failed");

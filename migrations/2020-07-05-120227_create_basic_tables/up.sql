@@ -32,7 +32,7 @@ create table trailor_logs (
 create table trailor_data (
     trailor_data_id integer not null primary key,
     trailor integer not null,
-    timestamp integer not null default (datetime('now')),
+    timestamp integer not null default (strftime('%s', 'now')),
     temperature integer,
     foreign key(trailor) references trailors(trailor_id)
 );

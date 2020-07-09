@@ -12,3 +12,6 @@ Cargo.lock
 # Remove files created by vim
 *.swp
 *.swo
+
+# Ignore database file
+db/

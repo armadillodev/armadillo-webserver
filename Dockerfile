@@ -10,7 +10,6 @@ FROM ubuntu:18.04
 RUN apt-get update && apt-get install -y \
 	libsqlite3-dev
 COPY --from=builder /usr/local/cargo/bin/armadillo-webserver /usr/local/bin/armadillo-webserver
-WORKDIR /app
-COPY ./db/records.db /app/db/records.db
-ENV ROCKET_DATABASES='{sqlite_records={url="/app/db/records.db"}}'
+COPY ./db/records.db /data/db/records.db
+ENV ROCKET_DATABASES='{sqlite_records={url="/data/db/records.db"}}'
 CMD ["armadillo-webserver"]

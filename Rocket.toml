@@ -2,5 +2,4 @@
 address = "localhost"
 
 [global.databases]
-sqlite_records = { url = "./db/records.db" }
-
+sqlite_records = { url = "/app/db/records.db" }

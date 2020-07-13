@@ -2,4 +2,4 @@
 address = "localhost"
 
 [global.databases]
-sqlite_records = { url = "/app/db/records.db" }
+db_records = { url = "postgres://postgres:postgres@localhost/armadillo"}

@@ -1,67 +1,83 @@
-create table orgs (
-    org_id integer not null primary key,
-    name text not null unique
+CREATE TABLE orgs (
+    org_id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL unique
 );
 
-create table trailors (
-    trailor_id integer not null primary key,
-    name text not null,
-    location text not null,
-    org integer not null,
-    foreign key(org) references orgs(org_id)
+CREATE TABLE trailers (
+    trailer_id SERIAL NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    location TEXT NOT NULL,
+    org INTEGER NOT NULL REFERENCES orgs(org_id)
 );
 
-create table users (
-    user_id integer not null primary key,
-    first_name text not null,
-    last_name text,
-    org integer not null,
-    foreign key(org) references orgs(org_id)
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    org INTEGER NOT NULL REFERENCES orgs(org_id),
+    first_name TEXT NOT NULL,
+    last_name TEXT
 );
 
-create table trailor_logs (
-    trailor_log_id integer not null primary key,
-    user integer not null ,
-    trailor integer not null,
-    time_start integer not null,
-    time_end integer not null,
-    foreign key(user) references orgs(org_id),
-    foreign key(trailor) references trailors(trailor_id)
+CREATE TABLE bikes (
+  bike_id SERIAL PRIMARY KEY,
+  trailer INTEGER NOT NULL REFERENCES trailers(trailer_id)
 );
 
-create table trailor_data (
-    trailor_data_id integer not null primary key,
-    trailor integer not null,
-    timestamp integer not null default (strftime('%s', 'now')),
-    temperature integer,
-    foreign key(trailor) references trailors(trailor_id)
+CREATE TABLE user_logs (
+    trailer_log_id SERIAL PRIMARY KEY,
+    client INTEGER NOT NULL REFERENCES users(user_id),
+    bike INTEGER NOT NULL REFERENCES bikes(bike_id),
+    time_start TIMESTAMP NOT NULL,
+    time_end TIMESTAMP NOT NULL
+);
+
+CREATE TABLE trailer_data (
+    trailer_data_id SERIAL,
+    trailer INTEGER NOT NULL REFERENCES trailers(trailer_id),
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    temperature INTEGER,
+    PRIMARY KEY (trailer_data_id, created_at)
+);
+
+CREATE TABLE bike_data (
+  bike_data_id SERIAL,
+  bike INTEGER NOT NULL REFERENCES bikes(bike_id),
+  created_at TIMESTAMP NOT NULL DEFAULT now(),
+  voltage INTEGER,
+  rpm INTEGER,
+  current INTEGER,
+  PRIMARY KEY (bike_data_id, created_at)
 );
 
 
-insert into orgs (name) values ("Kai");
-insert into orgs (name) values ("energilab");
+INSERT INTO orgs (name) VALUES ('Kai');
+INSERT INTO orgs (name) VALUES ('energilab');
 
-insert into trailors (name, location, org)
-values (
-    "Kai's House",
-    "Tokyo, Japan",
-    (select org_id from orgs where name="Kai")
+INSERT INTO trailers (name, location, org)
+VALUES (
+    'Kais House',
+    'Tokyo, Japan',
+    (SELECT org_id FROM orgs WHERE name='Kai')
 );
-insert into trailors (name, location, org) 
-values (
-    "Joe's fan",
-    "Denver, CO",
-    (select org_id from orgs where name="energilab")
+INSERT INTO trailers (name, location, org)
+VALUES (
+    'Joes fan',
+    'Denver, CO',
+    (SELECT org_id FROM orgs WHERE name='energilab')
 );
 
-insert into users (first_name, last_name, org) 
-values (
-    "Kai",
-    "Dewey",
-    (select org_id from orgs where name="Kai")
+INSERT INTO bikes (trailer)
+VALUES (
+  (SELECT trailer_id FROM trailers WHERE name='Kais House')
 );
-insert into users (first_name, org) 
-values (
-    "Joe",
-    (select org_id from orgs where name="energilab")
+
+INSERT INTO users (first_name, last_name, org)
+VALUES (
+    'Kai',
+    'Dewey',
+    (SELECT org_id FROM orgs WHERE name='Kai')
+);
+INSERT INTO users (first_name, org)
+VALUES (
+    'Joe',
+    (SELECT org_id FROM orgs WHERE name='energilab')
 );

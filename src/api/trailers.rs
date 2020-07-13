@@ -3,14 +3,6 @@ use crate::RecordsDbConn;
 use rocket_contrib::json::Json;
 use diesel::prelude::*;
 
-#[derive(Queryable, Serialize, Deserialize)]
-pub struct Trailor {
-    pub id: i32,
-    pub name: String,
-    pub location: String,
-    pub org: i32,
-}
-
 #[get("/")]
 pub fn get_all(conn: RecordsDbConn) -> Json<Vec<Trailor>> {
     use super::schema::trailors::dsl::*;

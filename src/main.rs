@@ -21,8 +21,8 @@ use rocket::Rocket;
 
 embed_migrations!();
 
-#[database("sqlite_records")]
-pub struct RecordsDbConn(diesel::SqliteConnection);
+#[database("db_records")]
+pub struct RecordsDbConn(diesel::PgConnection);
 
 fn run_db_migrations(rocket: Rocket) -> Result<Rocket, Rocket> {
     let conn = RecordsDbConn::get_one(&rocket).expect("database connection");

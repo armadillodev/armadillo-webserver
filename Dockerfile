@@ -8,7 +8,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 
 FROM ubuntu:18.04
 RUN apt-get update && apt-get install -y \
-	libsqlite3-dev
+	libpq-dev
 COPY --from=builder /usr/local/cargo/bin/armadillo-webserver /usr/local/bin/armadillo-webserver
 COPY ./db/records.db /data/db/records.db
 CMD ["armadillo-webserver"]

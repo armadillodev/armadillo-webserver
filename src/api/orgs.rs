@@ -23,29 +23,29 @@ pub struct BikeNode {
     id: i32,
 }
 
-fn get_org_structure(conn: &RecordsDbConn, org_id: i32) -> Option<OrgNode> {
+fn get_org_structure(conn: &RecordsDbConn, org_id_value: i32) -> Option<OrgNode> {
     let result;
     {
         use super::schema::orgs::dsl::*;
         result = orgs
             .select(name)
-            .find(org_id)
+            .find(org_id_value)
             .load::<String>(&**conn)
             .expect("Database failed")
             .pop()?;
     }
 
     Some(OrgNode {
-        id: org_id,
+        id: org_id_value,
         name: result,
-        trailers: get_trailers(conn, org_id),
+        trailers: get_trailers(conn, org_id_value),
     })
 }
-fn get_trailers(conn: &RecordsDbConn, org_id: i32) -> Vec<TrailerNode> {
+fn get_trailers(conn: &RecordsDbConn, org_id_value: i32) -> Vec<TrailerNode> {
     use super::schema::trailers::dsl::*;
 
     let results = trailers
-        .filter(org.eq(org_id))
+        .filter(org.eq(org_id_value))
         .load::<Trailer>(&**conn)
         .expect("Database failed");
 

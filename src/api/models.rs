@@ -1,3 +1,5 @@
+use std::time::SystemTime;
+
 #[derive(Queryable, Serialize, Deserialize)]
 pub struct Org {
     pub id: i32,
@@ -47,7 +49,7 @@ pub struct TrailerData {
 pub struct BikeData {
     pub id: i32,
     pub bike: i32,
-    pub created_at: i32,
+    pub created_at: SystemTime,
     pub voltage: Option<i32>,
     pub rpm: Option<i32>,
     pub current: Option<i32>,

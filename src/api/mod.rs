@@ -11,6 +11,13 @@ use rocket::Rocket;
 
 pub fn rocket(rocket: Rocket) -> Rocket {
     rocket
-        .mount("/org", routes![orgs::org_list_view, orgs::org_structure_view])
-        .mount("/data/bike", routes![data::post_bike_data])
+        .mount("/org", routes![
+            orgs::org_list_view,
+            orgs::org_structure_view,
+        ])
+        .mount("/data/bike", routes![
+            data::post_bike_data,
+            data::get_bike_data,
+            data::get_bike_data_latest,
+        ])
 }

@@ -3,6 +3,8 @@ use crate::RecordsDbConn;
 use diesel::prelude::*;
 use rocket_contrib::json::Json;
 
+use super::models::BikeData;
+
 #[derive(Serialize, Deserialize)]
 pub struct NewBikeData {
     pub voltage: Option<i32>,
@@ -62,4 +64,34 @@ pub fn post_bike_data(
         .expect("Error saving trailor data");
 
     Some("Ok")
+}
+
+fn fetch_bike_data(conn: RecordsDbConn, bike_id: i32, limit: i64) -> Vec<BikeData> {
+    use super::schema::bike_data::dsl::*;
+    bike_data
+        .filter(bike.eq(bike_id))
+        .order(created_at.desc())
+        .limit(limit)
+        .load::<BikeData>(&*conn)
+        .expect("Database failure")
+}
+
+#[get("/<bike_id>")]
+pub fn get_bike_data(
+    conn: RecordsDbConn,
+    bike_id: i32,
+) -> Json<Vec<BikeData>> {
+    let results = fetch_bike_data(conn, bike_id, 100);
+
+    Json(results)
+}
+
+#[get("/<bike_id>/latest")]
+pub fn get_bike_data_latest(
+    conn: RecordsDbConn,
+    bike_id: i32
+) -> Json<BikeData> {
+    let results = fetch_bike_data(conn, bike_id, 1).pop().unwrap();
+
+    Json(results)
 }

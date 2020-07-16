@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:experimental
-FROM rustlang/rust:nightly AS builder
+FROM rust:1.44-stretch
 WORKDIR /app
 COPY . .
 RUN --mount=type=cache,target=/usr/local/cargo/registry \

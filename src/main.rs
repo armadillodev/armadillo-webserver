@@ -1,49 +1,49 @@
-#![feature(proc_macro_hygiene, decl_macro)]
-#![recursion_limit = "256"]
+// #![feature(proc_macro_hygiene, decl_macro)]
+// #![recursion_limit = "256"]
 
-#[macro_use]
-extern crate rocket;
-#[macro_use]
-extern crate rocket_contrib;
-#[macro_use]
-extern crate serde_derive;
-#[macro_use]
-extern crate diesel;
-#[macro_use]
-extern crate diesel_migrations;
-#[macro_use]
-extern crate log;
+// #[macro_use]
+// extern crate rocket;
+// #[macro_use]
+// extern crate rocket_contrib;
+// #[macro_use]
+// extern crate serde_derive;
+// #[macro_use]
+// extern crate diesel;
+// #[macro_use]
+// extern crate diesel_migrations;
+// #[macro_use]
+// extern crate log;
 
-mod api;
+use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 
-use rocket::fairing::AdHoc;
-use rocket::Rocket;
-
-embed_migrations!();
-
-#[database("db_records")]
-pub struct RecordsDbConn(diesel::PgConnection);
-
-fn run_db_migrations(rocket: Rocket) -> Result<Rocket, Rocket> {
-    let conn = RecordsDbConn::get_one(&rocket).expect("database connection");
-    match embedded_migrations::run(&*conn) {
-        Ok(()) => Ok(rocket),
-        Err(e) => {
-            error!("Failed to run database migrations: {:?}", e);
-            Err(rocket)
-        }
-    }
+struct AppState {
+    name: String,
 }
 
-fn rocket() -> Rocket {
-    rocket::ignite()
-        .attach(RecordsDbConn::fairing())
-        .attach(AdHoc::on_attach("Database migrations", run_db_migrations))
+async fn index() -> impl Responder {
+    HttpResponse::Ok().body("Hello World!")
 }
 
-fn main() {
-    let mut app = rocket();
-    app = api::rocket(app);
+async fn index2(data: web::Data<AppState>) -> String {
+    let app_name = &data.name;
 
-    app.launch();
+    format!("Hello {}!", app_name)
+}
+
+#[actix_rt::main]
+async fn main() -> std::io::Result<()> {
+    HttpServer::new(|| {
+        App::new()
+            .data(AppState {
+                name: String::from("Actix-web")
+            })
+            .service(
+                web::scope("/app")
+                    .route("/", web::get().to(index))
+                    .route("/again", web::get().to(index2))
+            )
+    })
+    .bind("localhost:8000")?
+    .run()
+    .await
 }

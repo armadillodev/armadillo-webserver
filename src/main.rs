@@ -15,6 +15,8 @@
 // extern crate log;
 
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use actix_web::middleware::Logger;
+use env_logger::Env;
 
 struct AppState {
     name: String,
@@ -32,8 +34,11 @@ async fn index2(data: web::Data<AppState>) -> String {
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
+    env_logger::from_env(Env::default().default_filter_or("info")).init();
+
     HttpServer::new(|| {
         App::new()
+            .wrap(Logger::default())
             .data(AppState {
                 name: String::from("Actix-web")
             })

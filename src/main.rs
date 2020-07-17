@@ -41,15 +41,14 @@ async fn main() -> std::io::Result<()> {
         .build(manager)
         .expect("Failed to build pool");
 
-
-    let bind = "localhost:8000";
-
-    println!("starting server at: {}", bind);
-
     // run migrations
     run_db_migrations(pool.clone()).unwrap();
 
     // start server
+    let bind = "localhost:8000";
+
+    println!("starting server at: {}", bind);
+
     HttpServer::new(move || {
         App::new()
             .data(pool.clone())

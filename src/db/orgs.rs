@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use diesel::prelude::*;
 use diesel::PgConnection;
 

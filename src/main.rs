@@ -9,10 +9,35 @@ use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer, HttpResponse, Error, Responder};
 use diesel::PgConnection;
 use diesel::r2d2::{self, ConnectionManager};
+use serde::Serialize;
 
 mod db;
 
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
+
+#[derive(Serialize)]
+struct OrgStructure {
+    org: db::models::Org,
+    trailers: Vec<db::models::Trailer>,
+    bikes: Vec<db::models::Bike>,
+}
+
+impl OrgStructure {
+    fn new(conn: &PgConnection, org_id: i32) -> Result<Option<Self>, diesel::result::Error> {
+        let org = match db::orgs::find_org_by_id(conn, org_id)? {
+            Some(org) => org,
+            None => return Ok(None),
+        };
+        let trailers = db::orgs::find_trailers_by_org_id(conn, org_id)?;
+        let bikes = trailers.iter()
+            .map(|trailer| db::orgs::find_bikes_by_trailer_id(conn, trailer.id))
+            .flatten()
+            .flatten()
+            .collect::<Vec<db::models::Bike>>();
+
+        Ok(Some(OrgStructure { org, trailers, bikes }))
+    }
+}
 
 // run migrations on database
 embed_migrations!();
@@ -27,6 +52,7 @@ fn run_db_migrations(pool: DbPool) -> Result<(), String> {
     Ok(())
 }
 
+// routes for getting bike data
 async fn get_bike_data(pool: web::Data<DbPool>, bike_id: web::Path<i32>) -> Result<impl Responder, Error> {
     let bike_id = bike_id.into_inner();
     let conn = pool.get().expect("couldn't get db connection from pool");
@@ -63,6 +89,7 @@ async fn get_latest_bike_data(pool: web::Data<DbPool>, bike_id: web::Path<i32>) 
     Ok(HttpResponse::Ok().json(bike.pop().unwrap()))
 }
 
+// route for posting bike data
 async fn add_bike_data(
     pool: web::Data<DbPool>,
     bike_id: web::Path<i32>,
@@ -81,6 +108,27 @@ async fn add_bike_data(
 
     // no need to send data back
     Ok(HttpResponse::Ok().finish())
+}
+
+// get the structure of the organization
+async fn get_org_structure(
+    pool: web::Data<DbPool>,
+    org_id: web::Path<i32>,
+) -> Result<impl Responder, Error> {
+    let org_id = org_id.into_inner();
+    let conn = pool.get().expect("couldn't get connection from pool");
+
+    let org = web::block(move || OrgStructure::new(&conn, org_id))
+        .await
+        .map_err(|e| {
+            error!("{}", e);
+            HttpResponse::InternalServerError().finish()
+        })?;
+
+    match org {
+        Some(org) => Ok(HttpResponse::Ok().json(org)),
+        None => Ok(HttpResponse::NotFound().body(format!("no org with id: {} was found", org_id))),
+    }
 }
 
 #[actix_rt::main]
@@ -112,6 +160,9 @@ async fn main() -> std::io::Result<()> {
                 .route("/bike/{bike_id}", web::get().to(get_bike_data))
                 .route("/bike/{bike_id}/latest", web::get().to(get_latest_bike_data))
                 .route("/bike/{bike_id}", web::post().to(add_bike_data))
+            )
+            .service(web::scope("/org")
+                .route("/{org_id}", web::get().to(get_org_structure))
             )
     })
     .bind(&bind)?

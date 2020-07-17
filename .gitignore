@@ -14,4 +14,4 @@ Cargo.lock
 *.swo
 
 # Ignore database file
-db/
+/db/

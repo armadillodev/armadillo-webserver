@@ -1,13 +1,13 @@
 use std::time::SystemTime;
-use serde::{Serialize, Deserialize};
+use serde::Serialize;
 
-#[derive(Queryable, Serialize, Deserialize)]
+#[derive(Queryable, Serialize)]
 pub struct Org {
     pub id: i32,
     pub name: String,
 }
 
-#[derive(Queryable, Serialize, Deserialize)]
+#[derive(Queryable, Serialize)]
 pub struct Trailer {
     pub id: i32,
     pub name: String,
@@ -15,7 +15,7 @@ pub struct Trailer {
     pub org: i32,
 }
 
-#[derive(Queryable, Serialize, Deserialize)]
+#[derive(Queryable, Serialize)]
 pub struct User {
     pub id: i32,
     pub org: i32,
@@ -23,13 +23,13 @@ pub struct User {
     pub last_name: Option<String>,
 }
 
-#[derive(Queryable, Serialize, Deserialize)]
+#[derive(Queryable, Serialize)]
 pub struct Bike {
     pub id: i32,
     pub trailer: i32,
 }
 
-#[derive(Queryable, Serialize, Deserialize)]
+#[derive(Queryable, Serialize)]
 pub struct UserLog {
     pub id: i32,
     pub client: i32,
@@ -38,7 +38,7 @@ pub struct UserLog {
     pub time_end: i32,
 }
 
-#[derive(Queryable, Serialize, Deserialize)]
+#[derive(Queryable, Serialize)]
 pub struct TrailerData {
     pub id: i32,
     pub trailer: i32,
@@ -46,7 +46,7 @@ pub struct TrailerData {
     pub temperature: Option<i32>,
 }
 
-#[derive(Queryable, Serialize, Deserialize)]
+#[derive(Queryable, Serialize)]
 pub struct BikeData {
     pub id: i32,
     pub bike: i32,

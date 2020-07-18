@@ -60,3 +60,16 @@ pub fn find_bikes_by_trailer_id(conn: &PgConnection, id: i32) -> Result<Vec<Bike
 
     results
 }
+
+pub fn find_org_id_by_bike_id(conn: &PgConnection, id: i32) -> Result<Option<i32>, Error> {
+    use super::schema::bikes::dsl::*;
+    use super::schema::trailers::dsl::*;
+    let result = bikes
+        .filter(bike_id.eq(id))
+        .inner_join(trailers)
+        .select(org)
+        .first::<i32>(conn)
+        .optional()?;
+
+    Ok(result)
+}

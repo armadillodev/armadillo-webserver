@@ -90,3 +90,24 @@ pub async fn get_org_list(
 
     Ok(HttpResponse::Ok().json(orgs))
 }
+
+// get org id of a bike for authentication
+pub async fn get_org_id_for_bike(
+    pool: web::Data<DbPool>,
+    bike_id: web::Path<i32>,
+) -> Result<impl Responder, Error> {
+    let bike_id = bike_id.into_inner();
+    let conn = pool.get().expect("couldn't get connection from pool");
+
+    let org_id = web::block(move || db::orgs::find_org_id_by_bike_id(&conn, bike_id))
+        .await
+        .map_err(|e| {
+            error!("{}", e);
+            HttpResponse::InternalServerError().finish()
+        })?;
+
+    Ok(match org_id {
+        None => HttpResponse::NotFound().finish(),
+        Some(org_id) => HttpResponse::Ok().json(org_id)
+    })
+}

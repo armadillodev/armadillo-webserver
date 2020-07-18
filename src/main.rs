@@ -57,6 +57,7 @@ async fn main() -> std::io::Result<()> {
                 .route("/bike/{bike_id}", web::get().to(data::get_bike_data))
                 .route("/bike/{bike_id}/latest", web::get().to(data::get_latest_bike_data))
                 .route("/bike/{bike_id}", web::post().to(data::add_bike_data))
+                .route("/bike/{bike_id}/org", web::get().to(org::get_org_id_for_bike))
             )
             .service(web::scope("/org")
                 .route("/", web::get().to(org::get_org_list))

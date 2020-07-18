@@ -70,3 +70,23 @@ pub async fn get_org_structure(
         None => Ok(HttpResponse::NotFound().body(format!("no org with id: {} was found", org_id))),
     }
 }
+
+// get a list of orgs
+pub async fn get_org_list(
+    pool: web::Data<DbPool>,
+) -> Result<impl Responder, Error> {
+    let conn = pool.get().expect("couldn't get connection from pool");
+
+    let orgs = web::block(move || db::orgs::find_orgs(&conn))
+        .await
+        .map_err(|e| {
+            error!("{}", e);
+            HttpResponse::InternalServerError().finish()
+        })?;
+
+    if orgs.len() == 0 {
+        return Ok(HttpResponse::NotFound().finish());
+    }
+
+    Ok(HttpResponse::Ok().json(orgs))
+}

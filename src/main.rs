@@ -59,6 +59,7 @@ async fn main() -> std::io::Result<()> {
                 .route("/bike/{bike_id}", web::post().to(data::add_bike_data))
             )
             .service(web::scope("/org")
+                .route("/", web::get().to(org::get_org_list))
                 .route("/{org_id}", web::get().to(org::get_org_structure))
             )
     })

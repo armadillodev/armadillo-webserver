@@ -45,7 +45,7 @@ async fn main() -> std::io::Result<()> {
     run_db_migrations(pool.clone()).unwrap();
 
     // start server
-    let bind = "localhost:8000";
+    let bind = "0.0.0.0:3001";
 
     println!("starting server at: {}", bind);
 

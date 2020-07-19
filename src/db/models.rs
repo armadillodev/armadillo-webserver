@@ -46,7 +46,7 @@ pub struct TrailerData {
     pub temperature: Option<i32>,
 }
 
-#[derive(Queryable, Serialize)]
+#[derive(Queryable, Serialize, Clone)]
 pub struct BikeData {
     pub id: i32,
     pub bike: i32,

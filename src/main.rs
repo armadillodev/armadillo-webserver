@@ -7,12 +7,14 @@
 
 use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
+use actix::prelude::*;
 use diesel::PgConnection;
 use diesel::r2d2::{self, ConnectionManager};
 
 mod db;
 mod org;
 mod data;
+mod ws;
 
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
@@ -44,6 +46,9 @@ async fn main() -> std::io::Result<()> {
     // run migrations
     run_db_migrations(pool.clone()).unwrap();
 
+    // start bike update server
+    let bike_server = ws::BikeServer::new().start();
+
     // start server
     let bind = "0.0.0.0:3001";
 
@@ -52,12 +57,14 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .data(pool.clone())
+            .data(bike_server.clone())
             .wrap(Logger::default())
             .service(web::scope("/data")
                 .route("/bike/{bike_id}", web::get().to(data::get_bike_data))
                 .route("/bike/{bike_id}/latest", web::get().to(data::get_latest_bike_data))
                 .route("/bike/{bike_id}", web::post().to(data::add_bike_data))
                 .route("/bike/{bike_id}/org", web::get().to(org::get_org_id_for_bike))
+                .route("/bike/{bike_id}/ws", web::get().to(ws::ws_bike_updates))
             )
             .service(web::scope("/org")
                 .route("/", web::get().to(org::get_org_list))

@@ -62,6 +62,8 @@ impl Handler<Connect> for BikeServer {
 
         let bike_id = msg.bike_id;
 
+        info!("adding listener: {} for bike: {}", id, bike_id);
+
         self.listeners.entry(bike_id)
             .or_insert(HashMap::new())
             .insert(id, msg.addr);
@@ -85,6 +87,8 @@ impl Handler<Disconnect> for BikeServer {
 
     fn handle(&mut self, msg: Disconnect, _: &mut Context<Self>) {
         let id = msg.id;
+
+        info!("removing listener: {}", id);
 
         for (_, listeners) in self.listeners.iter_mut() {
             listeners.remove(&id);
@@ -144,10 +148,28 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsBikeUpdates {
         msg: Result<ws::Message, ws::ProtocolError>,
         ctx: &mut Self::Context,
     ) {
+        let msg = match msg {
+            Err(_) => {
+                ctx.stop();
+                return;
+            }
+            Ok(msg) => msg,
+        };
+
+        info!("Web socket message: {:?}", msg);
+
         match msg {
-            Ok(ws::Message::Ping(msg)) => ctx.pong(&msg),
-            Ok(ws::Message::Text(text)) => ctx.text(text),
-            Ok(ws::Message::Binary(bin)) => ctx.binary(bin),
+            ws::Message::Ping(msg) => {
+                self.hb = Instant::now();
+                ctx.pong(&msg);
+            }
+            ws::Message::Pong(_) => self.hb = Instant::now(),
+            ws::Message::Text(text) => ctx.text(text),
+            ws::Message::Binary(bin) => ctx.binary(bin),
+            ws::Message::Close(reason) => {
+                ctx.close(reason);
+                ctx.stop();
+            }
             _ => (),
         }
     }
@@ -157,6 +179,7 @@ impl WsBikeUpdates {
     fn hb(&self, ctx: &mut ws::WebsocketContext<Self>) {
         ctx.run_interval(HEARTBEAT_INTERVAL, |act, ctx| {
             if Instant::now().duration_since(act.hb) > CLIENT_TIMEOUT {
+                info!("web socket heartbeat failed");
                 ctx.stop();
                 return;
             }

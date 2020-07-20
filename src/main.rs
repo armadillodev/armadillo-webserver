@@ -72,6 +72,9 @@ async fn main() -> std::io::Result<()> {
                 .route("/", web::get().to(org::get_org_list))
                 .route("/{org_id}", web::get().to(org::get_org_structure))
             )
+            .service(web::scope("/ws")
+                .route("/bike/{bike_id}", web::get().to(ws::ws_bike_updates))
+            )
     })
     .bind(&bind)?
     .run()

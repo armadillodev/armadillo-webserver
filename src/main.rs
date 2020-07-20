@@ -33,7 +33,9 @@ fn run_db_migrations(pool: DbPool) -> Result<(), String> {
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
-    std::env::set_var("RUST_LOG", "actix_web=info");
+    // setup logging
+    std::env::set_var("RUST_LOG", "info");
+    env_logger::init();
 
     // setup database connection pool
     let connspec = std::env::var("DATABASE_URL")

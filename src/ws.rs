@@ -5,24 +5,44 @@ use actix_web_actors::ws;
 use std::time::{Duration, Instant};
 use crate::db::models::BikeData;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 const HEARTBEAT_INTERVAL: Duration =  Duration::from_secs(5);
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
-pub trait UpdateData: Send {}
+#[derive(Hash, Copy, Clone, Debug, Eq, PartialEq)]
+pub enum Address {
+    Bike(i32),
+}
 
-impl UpdateData for BikeData {}
+pub trait UpdateData: Send + Sync {
+    fn to_string(&self) -> String;
+}
+
+impl From<BikeData> for Arc<dyn UpdateData> {
+    fn from(update_data: BikeData) -> Self {
+        Arc::new(update_data)
+    }
+}
+
+impl UpdateData for BikeData {
+    fn to_string(&self) -> String {
+        serde_json::to_string(self).unwrap()
+    }
+}
 
 #[derive(Message)]
 #[rtype(result = "()")]
-pub struct Update<T: UpdateData>(pub T);
-
+pub struct Update {
+    pub address: Address,
+    pub data: Arc<dyn UpdateData>,
+}
 
 #[derive(Message)]
 #[rtype(usize)]
-pub struct Connect<T: UpdateData> {
-    bike_id: i32,
-    addr: Recipient<Update<T>>,
+pub struct Connect {
+    subject: Address,
+    recipient: Recipient<Update>,
 }
 
 #[derive(Message)]
@@ -32,22 +52,22 @@ pub struct Disconnect {
 }
 
 pub struct UpdateServer {
-    bike_listeners: HashMap<i32, HashMap<usize, Recipient<Update<BikeData>>>>,
+    listener_map: HashMap<Address, HashMap<usize, Recipient<Update>>>,
     count: usize,
 }
 
 impl UpdateServer {
     pub fn new() -> Self {
         UpdateServer {
-            bike_listeners: HashMap::new(),
+            listener_map: HashMap::new(),
             count: 0,
         }
     }
 
-    fn send_update(&mut self, bike_id: i32, bike_data: BikeData) {
-        if let Some(bike_listeners) = self.bike_listeners.get(&bike_id) {
-            for (_, addr) in bike_listeners {
-                addr.do_send(Update(bike_data.clone()));
+    fn send_update(&mut self, address: Address, data: Arc<dyn UpdateData>) {
+        if let Some(listeners) = self.listener_map.get(&address) {
+            for (_, addr) in listeners {
+                addr.do_send(Update{ address, data: Arc::clone(&data) }).expect("failed to send update");
             }
         }
     }
@@ -57,32 +77,31 @@ impl Actor for UpdateServer {
     type Context = Context<Self>;
 }
 
-impl Handler<Connect<BikeData>> for UpdateServer {
+impl Handler<Connect> for UpdateServer {
     type Result = usize;
 
-    fn handle(&mut self, msg: Connect<BikeData>, _: &mut Context<Self>) -> Self::Result {
+    fn handle(&mut self, msg: Connect, _: &mut Context<Self>) -> Self::Result {
         let id = self.count;
         self.count += 1;
 
-        let bike_id = msg.bike_id;
+        let address = msg.subject;
 
-        info!("adding listener: {} for bike: {}", id, bike_id);
+        info!("adding listener: {} for {:?}", id, address);
 
-        self.bike_listeners.entry(bike_id)
+        self.listener_map.entry(address)
             .or_insert(HashMap::new())
-            .insert(id, msg.addr);
+            .insert(id, msg.recipient);
 
         id
     }
 }
 
-impl Handler<Update<BikeData>> for UpdateServer {
+impl Handler<Update> for UpdateServer {
     type Result = ();
 
-    fn handle(&mut self, msg: Update<BikeData>, _: &mut Context<Self>) {
-        info!("bike server recv data");
-        let bike_id = msg.0.bike;
-        self.send_update(bike_id, msg.0);
+    fn handle(&mut self, msg: Update, _: &mut Context<Self>) {
+        info!("update server recv data");
+        self.send_update(msg.address, msg.data);
     }
 }
 
@@ -94,7 +113,7 @@ impl Handler<Disconnect> for UpdateServer {
 
         info!("removing listener: {}", id);
 
-        for (_, listeners) in self.bike_listeners.iter_mut() {
+        for (_, listeners) in self.listener_map.iter_mut() {
             listeners.remove(&id);
         }
     }
@@ -102,7 +121,7 @@ impl Handler<Disconnect> for UpdateServer {
 
 struct WsBikeUpdates {
     id: usize,
-    bike_id: i32,
+    address: Address,
     hb: Instant,
     addr: Addr<UpdateServer>,
 }
@@ -117,8 +136,8 @@ impl Actor for WsBikeUpdates {
         let addr = ctx.address();
         self.addr
             .send(Connect{
-                addr: addr.recipient(),
-                bike_id: self.bike_id,
+                recipient: addr.recipient(),
+                subject: self.address,
             })
             .into_actor(self)
             .then(|res, act, ctx| {
@@ -137,12 +156,12 @@ impl Actor for WsBikeUpdates {
     }
 }
 
-impl Handler<Update<BikeData>> for WsBikeUpdates {
+impl Handler<Update> for WsBikeUpdates {
     type Result = ();
 
-    fn handle(&mut self, msg: Update<BikeData>, ctx: &mut Self::Context) {
+    fn handle(&mut self, msg: Update, ctx: &mut Self::Context) {
         info!("sending data");
-        ctx.text(serde_json::to_string(&msg.0).unwrap());
+        ctx.text(msg.data.to_string());
     }
 }
 
@@ -203,7 +222,7 @@ pub async fn ws_bike_updates(
     let res = ws::start(
         WsBikeUpdates {
             id: 0,
-            bike_id,
+            address: Address::Bike(bike_id),
             hb: Instant::now(),
             addr: srv.get_ref().clone(),
         },

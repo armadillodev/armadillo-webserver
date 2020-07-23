@@ -1,6 +1,5 @@
 use actix::Addr;
-use crate::ws::{UpdateServer, Update};
-use crate::db::models::BikeData;
+use crate::ws::{UpdateServer, Update, Address};
 use actix_web::{web, Responder, Error, HttpResponse};
 
 use crate::DbPool;
@@ -48,13 +47,13 @@ pub async fn add_bike_data(
     pool: web::Data<DbPool>,
     bike_id: web::Path<i32>,
     data: web::Json<db::data::CreateBikeData>,
-    bike_update_server: web::Data<Addr<UpdateServer>>,
+    update_server: web::Data<Addr<UpdateServer>>,
 ) -> Result<impl Responder, Error> {
     let bike_id = bike_id.into_inner();
     let conn = pool.get().expect("couldn't get connection from pool");
     let data = data.into_inner();
 
-    let updated_data = web::block(move || db::data::insert_new_bike_data(&conn, bike_id, data))
+    let _updated_data = web::block(move || db::data::insert_new_bike_data(&conn, bike_id, data))
         .await
         .map_err(|e| {
             error!("{}", e);
@@ -70,8 +69,12 @@ pub async fn add_bike_data(
             HttpResponse::InternalServerError().finish()
         })?;
 
+    // send data to update server
     if bike_data.len() != 0 {
-        bike_update_server.do_send(Update(bike_data.pop().unwrap()));
+        update_server.do_send(Update{
+            address: Address::Bike(bike_id),
+            data: bike_data.pop().unwrap().into(),
+        });
     }
 
     // no need to send data back

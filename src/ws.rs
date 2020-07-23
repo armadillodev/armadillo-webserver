@@ -9,16 +9,20 @@ use std::collections::HashMap;
 const HEARTBEAT_INTERVAL: Duration =  Duration::from_secs(5);
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
+pub trait UpdateData: Send {}
+
+impl UpdateData for BikeData {}
+
 #[derive(Message)]
 #[rtype(result = "()")]
-pub struct Update(pub BikeData);
+pub struct Update<T: UpdateData>(pub T);
 
 
 #[derive(Message)]
 #[rtype(usize)]
-pub struct Connect {
+pub struct Connect<T: UpdateData> {
     bike_id: i32,
-    addr: Recipient<Update>,
+    addr: Recipient<Update<T>>,
 }
 
 #[derive(Message)]
@@ -28,20 +32,20 @@ pub struct Disconnect {
 }
 
 pub struct BikeServer {
-    listeners: HashMap<i32, HashMap<usize, Recipient<Update>>>,
+    bike_listeners: HashMap<i32, HashMap<usize, Recipient<Update<BikeData>>>>,
     count: usize,
 }
 
 impl BikeServer {
     pub fn new() -> Self {
         BikeServer {
-            listeners: HashMap::new(),
+            bike_listeners: HashMap::new(),
             count: 0,
         }
     }
 
     fn send_update(&mut self, bike_id: i32, bike_data: BikeData) {
-        if let Some(bike_listeners) = self.listeners.get(&bike_id) {
+        if let Some(bike_listeners) = self.bike_listeners.get(&bike_id) {
             for (_, addr) in bike_listeners {
                 addr.do_send(Update(bike_data.clone()));
             }
@@ -53,10 +57,10 @@ impl Actor for BikeServer {
     type Context = Context<Self>;
 }
 
-impl Handler<Connect> for BikeServer {
+impl Handler<Connect<BikeData>> for BikeServer {
     type Result = usize;
 
-    fn handle(&mut self, msg: Connect, _: &mut Context<Self>) -> Self::Result {
+    fn handle(&mut self, msg: Connect<BikeData>, _: &mut Context<Self>) -> Self::Result {
         let id = self.count;
         self.count += 1;
 
@@ -64,7 +68,7 @@ impl Handler<Connect> for BikeServer {
 
         info!("adding listener: {} for bike: {}", id, bike_id);
 
-        self.listeners.entry(bike_id)
+        self.bike_listeners.entry(bike_id)
             .or_insert(HashMap::new())
             .insert(id, msg.addr);
 
@@ -72,10 +76,10 @@ impl Handler<Connect> for BikeServer {
     }
 }
 
-impl Handler<Update> for BikeServer {
+impl Handler<Update<BikeData>> for BikeServer {
     type Result = ();
 
-    fn handle(&mut self, msg: Update, _: &mut Context<Self>) {
+    fn handle(&mut self, msg: Update<BikeData>, _: &mut Context<Self>) {
         info!("bike server recv data");
         let bike_id = msg.0.bike;
         self.send_update(bike_id, msg.0);
@@ -90,7 +94,7 @@ impl Handler<Disconnect> for BikeServer {
 
         info!("removing listener: {}", id);
 
-        for (_, listeners) in self.listeners.iter_mut() {
+        for (_, listeners) in self.bike_listeners.iter_mut() {
             listeners.remove(&id);
         }
     }
@@ -133,10 +137,10 @@ impl Actor for WsBikeUpdates {
     }
 }
 
-impl Handler<Update> for WsBikeUpdates {
+impl Handler<Update<BikeData>> for WsBikeUpdates {
     type Result = ();
 
-    fn handle(&mut self, msg: Update, ctx: &mut Self::Context) {
+    fn handle(&mut self, msg: Update<BikeData>, ctx: &mut Self::Context) {
         info!("sending data");
         ctx.text(serde_json::to_string(&msg.0).unwrap());
     }

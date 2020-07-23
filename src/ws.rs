@@ -31,14 +31,14 @@ pub struct Disconnect {
     pub id: usize,
 }
 
-pub struct BikeServer {
+pub struct UpdateServer {
     bike_listeners: HashMap<i32, HashMap<usize, Recipient<Update<BikeData>>>>,
     count: usize,
 }
 
-impl BikeServer {
+impl UpdateServer {
     pub fn new() -> Self {
-        BikeServer {
+        UpdateServer {
             bike_listeners: HashMap::new(),
             count: 0,
         }
@@ -53,11 +53,11 @@ impl BikeServer {
     }
 }
 
-impl Actor for BikeServer {
+impl Actor for UpdateServer {
     type Context = Context<Self>;
 }
 
-impl Handler<Connect<BikeData>> for BikeServer {
+impl Handler<Connect<BikeData>> for UpdateServer {
     type Result = usize;
 
     fn handle(&mut self, msg: Connect<BikeData>, _: &mut Context<Self>) -> Self::Result {
@@ -76,7 +76,7 @@ impl Handler<Connect<BikeData>> for BikeServer {
     }
 }
 
-impl Handler<Update<BikeData>> for BikeServer {
+impl Handler<Update<BikeData>> for UpdateServer {
     type Result = ();
 
     fn handle(&mut self, msg: Update<BikeData>, _: &mut Context<Self>) {
@@ -86,7 +86,7 @@ impl Handler<Update<BikeData>> for BikeServer {
     }
 }
 
-impl Handler<Disconnect> for BikeServer {
+impl Handler<Disconnect> for UpdateServer {
     type Result = ();
 
     fn handle(&mut self, msg: Disconnect, _: &mut Context<Self>) {
@@ -104,7 +104,7 @@ struct WsBikeUpdates {
     id: usize,
     bike_id: i32,
     hb: Instant,
-    addr: Addr<BikeServer>,
+    addr: Addr<UpdateServer>,
 }
 
 impl Actor for WsBikeUpdates {
@@ -197,7 +197,7 @@ pub async fn ws_bike_updates(
     req: HttpRequest,
     stream: web::Payload,
     bike_id: web::Path<i32>,
-    srv: web::Data<Addr<BikeServer>>,
+    srv: web::Data<Addr<UpdateServer>>,
 ) -> Result<HttpResponse, Error> {
     let bike_id = bike_id.into_inner();
     let res = ws::start(

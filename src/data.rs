@@ -1,5 +1,5 @@
 use actix::Addr;
-use crate::ws::{BikeServer, Update};
+use crate::ws::{UpdateServer, Update};
 use crate::db::models::BikeData;
 use actix_web::{web, Responder, Error, HttpResponse};
 
@@ -48,7 +48,7 @@ pub async fn add_bike_data(
     pool: web::Data<DbPool>,
     bike_id: web::Path<i32>,
     data: web::Json<db::data::CreateBikeData>,
-    bike_update_server: web::Data<Addr<BikeServer>>,
+    bike_update_server: web::Data<Addr<UpdateServer>>,
 ) -> Result<impl Responder, Error> {
     let bike_id = bike_id.into_inner();
     let conn = pool.get().expect("couldn't get connection from pool");

@@ -49,7 +49,7 @@ async fn main() -> std::io::Result<()> {
     run_db_migrations(pool.clone()).unwrap();
 
     // start bike update server
-    let bike_server = ws::BikeServer::new().start();
+    let bike_server = ws::UpdateServer::new().start();
 
     // start server
     let bind = "0.0.0.0:3001";

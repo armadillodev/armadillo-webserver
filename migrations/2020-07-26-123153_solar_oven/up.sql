@@ -11,3 +11,8 @@ CREATE TABLE oven_data (
     temperature REAL,
     PRIMARY KEY (oven_data_id, created_at)
 );
+
+INSERT INTO ovens (trailer)
+VALUES (
+    (SELECT trailer_id FROM trailers LIMIT 1)
+);

@@ -25,7 +25,7 @@ where D: 'static + DataQuery + Serialize + Send
         })?;
 
     if data.len() == 0 {
-        Ok(HttpResponse::NotFound().body(format!("no data with id: {} was found", id)))
+        Ok(HttpResponse::NotFound().body(format!("no data with id: {} was found for {}", id, D::data_type())))
     } else {
         Ok(HttpResponse::Ok().json(data))
     }

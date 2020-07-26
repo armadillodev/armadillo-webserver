@@ -13,6 +13,8 @@ pub trait DbData: Send + Sync {
 pub trait DataQuery: DbData + Sized{
     type NewData: Send;
 
+    fn data_type() -> &'static str;
+
     fn find(
         conn: &PgConnection,
         id: i32,
@@ -54,6 +56,7 @@ impl DbData for OvenData {
 
 impl DataQuery for OvenData {
     type NewData = NewOvenData;
+    fn data_type() -> &'static str { "Oven" }
 
     fn find(
         conn: & PgConnection,
@@ -84,6 +87,9 @@ impl DbData for BikeData {
 
 impl DataQuery for BikeData {
     type NewData = CreateBikeData;
+
+    fn data_type() -> &'static str { "Bike" }
+
     fn find(
         conn: &PgConnection,
         bike_id: i32,

@@ -1,23 +1,30 @@
 use actix::Addr;
 use crate::ws::{UpdateServer, Update};
 use actix_web::{web, Responder, Error, HttpResponse};
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use std::sync::Arc;
 
 use crate::DbPool;
 use super::db::DataQuery;
 
+#[derive(Deserialize)]
+pub struct Info {
+    count: Option<i32>,
+}
+
 // route for getting data
 pub async fn get_data<D> (
     pool: web::Data<DbPool>,
     id: web::Path<i32>,
+    info: web::Query<Info>,
 ) -> Result<impl Responder, Error> 
 where D: 'static + DataQuery + Serialize + Send
 {
     let id = id.into_inner();
     let conn = pool.get().expect("couldn't get db connection from pool");
+    let count = info.count.unwrap_or(100);
 
-    let data = web::block(move || D::find(&conn, id, 100))
+    let data = web::block(move || D::find(&conn, id, count))
         .await
         .map_err(|e| {
             error!("{}", e);

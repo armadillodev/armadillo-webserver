@@ -26,8 +26,8 @@ table! {
 table! {
     oven_data (oven_data_id, created_at) {
         oven_data_id -> Int4,
-        created_at -> Timestamp,
         oven -> Int4,
+        created_at -> Timestamp,
         temperature -> Nullable<Float4>,
     }
 }
@@ -35,6 +35,24 @@ table! {
 table! {
     ovens (oven_id) {
         oven_id -> Int4,
+        trailer -> Int4,
+    }
+}
+
+table! {
+    solar_microgrid_data (solar_microgrid_data_id, created_at) {
+        solar_microgrid_data_id -> Int4,
+        solar_microgrid -> Int4,
+        created_at -> Timestamp,
+        temperature -> Nullable<Float4>,
+        capacity -> Nullable<Float4>,
+        power -> Nullable<Float4>,
+    }
+}
+
+table! {
+    solar_microgrids (solar_microgrid_id) {
+        solar_microgrid_id -> Int4,
         trailer -> Int4,
     }
 }
@@ -80,6 +98,8 @@ joinable!(bike_data -> bikes (bike));
 joinable!(bikes -> trailers (trailer));
 joinable!(oven_data -> ovens (oven));
 joinable!(ovens -> trailers (trailer));
+joinable!(solar_microgrid_data -> solar_microgrids (solar_microgrid));
+joinable!(solar_microgrids -> trailers (trailer));
 joinable!(trailer_data -> trailers (trailer));
 joinable!(trailers -> orgs (org));
 joinable!(user_logs -> bikes (bike));
@@ -92,6 +112,8 @@ allow_tables_to_appear_in_same_query!(
     orgs,
     oven_data,
     ovens,
+    solar_microgrid_data,
+    solar_microgrids,
     trailer_data,
     trailers,
     user_logs,

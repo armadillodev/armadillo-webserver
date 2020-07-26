@@ -6,8 +6,8 @@ CREATE TABLE ovens (
 
 CREATE TABLE oven_data (
     oven_data_id SERIAL,
-    created_at TIMESTAMP NOT NULL DEFAULT now(),
     oven INTEGER NOT NULL REFERENCES ovens(oven_id) ON DELETE CASCADE,
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
     temperature REAL,
     PRIMARY KEY (oven_data_id, created_at)
 );

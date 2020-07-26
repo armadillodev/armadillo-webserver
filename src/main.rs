@@ -63,12 +63,17 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::default())
             .service(web::scope("/data")
                 .route("/bike/{bike_id}", web::get().to(data::get_data::<db::BikeData>))
-                .route("/bike/{bike_id}/latest", web::get().to(data::get_latest_bike_data))
                 .route("/bike/{bike_id}", web::post().to(data::post_data::<db::BikeData>))
+
+                .route("/bike/{bike_id}/latest", web::get().to(data::get_latest_bike_data))
                 .route("/bike/{bike_id}/org", web::get().to(org::get_org_id_for_bike))
                 .route("/bike/{bike_id}/ws", web::get().to(ws::ws_bike_updates))
+
                 .route("/oven/{oven_id}", web::get().to(data::get_data::<db::OvenData>))
                 .route("/oven/{oven_id}", web::post().to(data::post_data::<db::OvenData>))
+
+                .route("/oven/{microgrid_id}", web::get().to(data::get_data::<db::SolarMicrogridData>))
+                .route("/oven/{microgrid_id}", web::post().to(data::get_data::<db::SolarMicrogridData>))
             )
             .service(web::scope("/org")
                 .route("/", web::get().to(org::get_org_list))

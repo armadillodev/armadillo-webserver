@@ -1,8 +1,7 @@
 use diesel::prelude::*;
 use diesel::PgConnection;
 use serde::Deserialize;
-use super::models::BikeData;
-use super::models::OvenData;
+use super::models::{BikeData, OvenData, SolarMicrogridData};
 use super::Address;
 
 pub trait DbData: Send + Sync {
@@ -10,7 +9,7 @@ pub trait DbData: Send + Sync {
     fn to_packet(&self) -> String;
 }
 
-pub trait DataQuery: DbData + Sized{
+pub trait DataQuery: DbData + Sized {
     type NewData: Send;
 
     fn data_type() -> &'static str;
@@ -30,13 +29,13 @@ pub trait DataQuery: DbData + Sized{
     }
 }
 
+// structs for creating new data
 #[derive(Deserialize)]
 pub struct NewOvenData {
     pub oven: i32,
     pub temperature: Option<f32>,
 }
 
-// fields for creating new data row
 #[derive(Deserialize)]
 pub struct CreateBikeData {
     pub voltage: Option<i32>,
@@ -44,6 +43,8 @@ pub struct CreateBikeData {
     pub current: Option<i32>,
 }
 
+// impl DbData and DataQuery
+// Oven Data
 impl DbData for OvenData {
     fn id(&self) -> Address {
         Address::Oven(self.id)
@@ -75,6 +76,7 @@ impl DataQuery for OvenData {
     }
 }
 
+// BikeData
 impl DbData for BikeData {
     fn id(&self) -> Address {
         Address::Bike(self.id)
@@ -123,5 +125,46 @@ impl DataQuery for BikeData {
             .execute(conn)?;
     
         Ok(())    
+    }
+}
+
+// SolarMicrogridData
+impl DbData for SolarMicrogridData {
+    fn id(&self) -> Address {
+        Address::Microgrid(self.id)
+    }
+
+    fn to_packet(&self) -> String {
+        serde_json::to_string(self).unwrap()
+    }
+}
+
+impl DataQuery for SolarMicrogridData {
+    type NewData = ();
+
+    fn data_type() -> &'static str { "SolarMicrogrid" }
+
+    fn find(
+        conn: &PgConnection,
+        solar_microgrid_id: i32,
+        count: i32,
+    ) -> Result<Vec<Self>, diesel::result::Error> {
+        use super::schema::solar_microgrid_data::dsl::*;
+
+        let data = solar_microgrid_data
+            .filter(solar_microgrid.eq(solar_microgrid_id))
+            .order(created_at.desc())
+            .limit(count as i64)
+            .load::<SolarMicrogridData>(conn)?;
+    
+        Ok(data)
+    }
+
+    fn insert(
+        _conn: &PgConnection,
+        _id: i32,
+        _data: Self::NewData,
+    ) -> Result<(), diesel::result::Error> {
+        Ok(())
     }
 }

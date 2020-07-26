@@ -24,7 +24,19 @@ pub struct User {
 }
 
 #[derive(Queryable, Serialize)]
+pub struct Oven {
+    pub id: i32,
+    pub trailer: i32,
+}
+
+#[derive(Queryable, Serialize)]
 pub struct Bike {
+    pub id: i32,
+    pub trailer: i32,
+}
+
+#[derive(Queryable, Serialize)]
+pub struct SolarMicogrid {
     pub id: i32,
     pub trailer: i32,
 }
@@ -57,15 +69,19 @@ pub struct BikeData {
 }
 
 #[derive(Queryable, Serialize)]
-pub struct Oven {
+pub struct OvenData {
     pub id: i32,
-    pub trailer: i32,
+    pub oven: i32,
+    pub created_at: SystemTime,
+    pub temperature: Option<f32>,
 }
 
 #[derive(Queryable, Serialize)]
-pub struct OvenData {
+pub struct SolarMicrogridData {
     pub id: i32,
+    pub solar_microgrid: i32,
     pub created_at: SystemTime,
-    pub oven: i32,
     pub temperature: Option<f32>,
+    pub capacity: Option<f32>,
+    pub power: Option<f32>,
 }

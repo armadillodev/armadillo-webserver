@@ -1,10 +1,16 @@
 use diesel::prelude::*;
 use diesel::PgConnection;
-use serde::{Deserialize};
+use serde::Deserialize;
 use super::models::BikeData;
 use super::models::OvenData;
+use super::Address;
 
-pub trait DataQuery: Sized + Send {
+pub trait DbData: Send + Sync {
+    fn id(&self) -> Address;
+    fn to_packet(&self) -> String;
+}
+
+pub trait DataQuery: DbData + Sized{
     type NewData: Send;
 
     fn find(
@@ -14,9 +20,9 @@ pub trait DataQuery: Sized + Send {
     ) -> Result<Vec<Self>, diesel::result::Error>;
 
     fn insert(
-        conn: &PgConnection,
-        id: i32,
-        data: Self::NewData,
+        _conn: &PgConnection,
+        _id: i32,
+        _data: Self::NewData,
     ) -> Result<(), diesel::result::Error> {
         Ok(())
     }
@@ -36,6 +42,16 @@ pub struct CreateBikeData {
     pub current: Option<i32>,
 }
 
+impl DbData for OvenData {
+    fn id(&self) -> Address {
+        Address::Oven(self.id)
+    }
+
+    fn to_packet(&self) -> String {
+        serde_json::to_string(self).unwrap()
+    }
+}
+
 impl DataQuery for OvenData {
     type NewData = NewOvenData;
 
@@ -53,6 +69,16 @@ impl DataQuery for OvenData {
             .load::<OvenData>(conn)?;
     
         Ok(data)    
+    }
+}
+
+impl DbData for BikeData {
+    fn id(&self) -> Address {
+        Address::Bike(self.id)
+    }
+
+    fn to_packet(&self) -> String {
+        serde_json::to_string(self).unwrap()
     }
 }
 

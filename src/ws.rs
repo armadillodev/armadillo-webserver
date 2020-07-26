@@ -3,40 +3,18 @@ use actix::{Actor, StreamHandler};
 use actix_web::{web, Error, HttpResponse, HttpRequest};
 use actix_web_actors::ws;
 use std::time::{Duration, Instant};
-use crate::db::models::BikeData;
 use std::collections::HashMap;
 use std::sync::Arc;
+use crate::db::{data::DbData, Address};
 
 const HEARTBEAT_INTERVAL: Duration =  Duration::from_secs(5);
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
-#[derive(Hash, Copy, Clone, Debug, Eq, PartialEq)]
-pub enum Address {
-    Bike(i32),
-}
-
-pub trait UpdateData: Send + Sync {
-    fn to_string(&self) -> String;
-}
-
-impl From<BikeData> for Arc<dyn UpdateData> {
-    fn from(update_data: BikeData) -> Self {
-        Arc::new(update_data)
-    }
-}
-
-impl UpdateData for BikeData {
-    fn to_string(&self) -> String {
-        serde_json::to_string(self).unwrap()
-    }
-}
+type SendData = Arc<dyn DbData>;
 
 #[derive(Message)]
 #[rtype(result = "()")]
-pub struct Update {
-    pub address: Address,
-    pub data: Arc<dyn UpdateData>,
-}
+pub struct Update(pub SendData);
 
 #[derive(Message)]
 #[rtype(usize)]
@@ -64,10 +42,10 @@ impl UpdateServer {
         }
     }
 
-    fn send_update(&mut self, address: Address, data: Arc<dyn UpdateData>) {
-        if let Some(listeners) = self.listener_map.get(&address) {
+    fn send_update(&mut self, data: SendData) {
+        if let Some(listeners) = self.listener_map.get(&data.id()) {
             for (_, addr) in listeners {
-                addr.do_send(Update{ address, data: Arc::clone(&data) }).expect("failed to send update");
+                addr.do_send(Update(Arc::clone(&data))).expect("failed to send update");
             }
         }
     }
@@ -101,7 +79,7 @@ impl Handler<Update> for UpdateServer {
 
     fn handle(&mut self, msg: Update, _: &mut Context<Self>) {
         info!("update server recv data");
-        self.send_update(msg.address, msg.data);
+        self.send_update(msg.0);
     }
 }
 
@@ -161,7 +139,7 @@ impl Handler<Update> for WsBikeUpdates {
 
     fn handle(&mut self, msg: Update, ctx: &mut Self::Context) {
         info!("sending data");
-        ctx.text(msg.data.to_string());
+        ctx.text(msg.0.to_packet());
     }
 }
 

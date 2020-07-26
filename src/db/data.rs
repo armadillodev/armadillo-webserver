@@ -2,6 +2,57 @@ use diesel::prelude::*;
 use diesel::PgConnection;
 use serde::{Deserialize};
 use super::models::BikeData;
+use super::models::OvenData;
+
+pub trait DataQuery: Sized {
+    type NewData;
+
+    fn find(
+        conn: &PgConnection,
+        id: i32,
+        count: i32,
+    ) -> Result<Vec<Self>, diesel::result::Error>;
+
+    fn insert(
+        conn: &PgConnection,
+        id: i32,
+        data: Self::NewData,
+    ) -> Result<(), diesel::result::Error>;
+}
+
+#[derive(Deserialize)]
+pub struct NewOvenData {
+    pub oven: i32,
+    pub temperature: Option<f32>,
+}
+
+impl DataQuery for OvenData {
+    type NewData = NewOvenData;
+
+    fn find(
+        conn: & PgConnection,
+        oven_id: i32,
+        count: i32,
+    ) -> Result<Vec<OvenData>, diesel::result::Error> {
+        use super::schema::oven_data::dsl::*;
+
+        let data = oven_data
+            .filter(oven.eq(oven_id))
+            .order(created_at.desc())
+            .limit(count as i64)
+            .load::<OvenData>(conn)?;
+    
+        Ok(data)    
+    }
+
+    fn insert(
+        conn: &PgConnection,
+        id: i32,
+        data: Self::NewData,
+    ) -> Result<(), diesel::result::Error> {
+        Ok(())
+    }
+}
 
 // fields for creating new data row
 #[derive(Deserialize)]
@@ -46,4 +97,20 @@ pub fn insert_new_bike_data(
         .execute(conn)?;
 
     Ok(())
+}
+
+pub fn find_oven_data(
+    conn: &PgConnection,
+    oven_id: i32,
+    count: i32,
+) -> Result<Vec<OvenData>, diesel::result::Error> {
+    use super::schema::oven_data::dsl::*;
+
+    let data = oven_data
+        .filter(oven.eq(oven_id))
+        .order(created_at.desc())
+        .limit(count as i64)
+        .load::<OvenData>(conn)?;
+
+    Ok(data)
 }

@@ -24,6 +24,22 @@ table! {
 }
 
 table! {
+    oven_data (oven_data_id, created_at) {
+        oven_data_id -> Int4,
+        created_at -> Timestamp,
+        oven -> Int4,
+        temperature -> Nullable<Float4>,
+    }
+}
+
+table! {
+    ovens (oven_id) {
+        oven_id -> Int4,
+        trailer -> Int4,
+    }
+}
+
+table! {
     trailer_data (trailer_data_id, created_at) {
         trailer_data_id -> Int4,
         trailer -> Int4,
@@ -62,6 +78,8 @@ table! {
 
 joinable!(bike_data -> bikes (bike));
 joinable!(bikes -> trailers (trailer));
+joinable!(oven_data -> ovens (oven));
+joinable!(ovens -> trailers (trailer));
 joinable!(trailer_data -> trailers (trailer));
 joinable!(trailers -> orgs (org));
 joinable!(user_logs -> bikes (bike));
@@ -72,6 +90,8 @@ allow_tables_to_appear_in_same_query!(
     bike_data,
     bikes,
     orgs,
+    oven_data,
+    ovens,
     trailer_data,
     trailers,
     user_logs,

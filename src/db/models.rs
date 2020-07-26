@@ -55,3 +55,17 @@ pub struct BikeData {
     pub rpm: Option<i32>,
     pub current: Option<i32>,
 }
+
+#[derive(Queryable, Serialize)]
+pub struct Oven {
+    pub id: i32,
+    pub trailer: i32,
+}
+
+#[derive(Queryable, Serialize)]
+pub struct OvenData {
+    pub id: i32,
+    pub created_at: SystemTime,
+    pub oven: i32,
+    pub temperature: Option<f32>,
+}

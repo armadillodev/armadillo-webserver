@@ -4,8 +4,8 @@ use serde::{Deserialize};
 use super::models::BikeData;
 use super::models::OvenData;
 
-pub trait DataQuery: Sized {
-    type NewData;
+pub trait DataQuery: Sized + Send {
+    type NewData: Send;
 
     fn find(
         conn: &PgConnection,

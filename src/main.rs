@@ -72,8 +72,8 @@ async fn main() -> std::io::Result<()> {
                 .route("/oven/{oven_id}", web::get().to(data::get_data::<db::OvenData>))
                 .route("/oven/{oven_id}", web::post().to(data::post_data::<db::OvenData>))
 
-                .route("/oven/{microgrid_id}", web::get().to(data::get_data::<db::SolarMicrogridData>))
-                .route("/oven/{microgrid_id}", web::post().to(data::get_data::<db::SolarMicrogridData>))
+                .route("/microgrid/{microgrid_id}", web::get().to(data::get_data::<db::SolarMicrogridData>))
+                .route("/microgrid/{microgrid_id}", web::post().to(data::post_data::<db::SolarMicrogridData>))
             )
             .service(web::scope("/org")
                 .route("/", web::get().to(org::get_org_list))

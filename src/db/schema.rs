@@ -45,7 +45,6 @@ table! {
         solar_microgrid -> Int4,
         created_at -> Timestamp,
         temperature -> Nullable<Float4>,
-        capacity -> Nullable<Float4>,
         power -> Nullable<Float4>,
     }
 }
@@ -54,6 +53,7 @@ table! {
     solar_microgrids (solar_microgrid_id) {
         solar_microgrid_id -> Int4,
         trailer -> Int4,
+        capacity -> Nullable<Float4>,
     }
 }
 

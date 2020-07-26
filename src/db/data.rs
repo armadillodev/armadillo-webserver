@@ -32,15 +32,20 @@ pub trait DataQuery: DbData + Sized {
 // structs for creating new data
 #[derive(Deserialize)]
 pub struct NewOvenData {
-    pub oven: i32,
     pub temperature: Option<f32>,
 }
 
 #[derive(Deserialize)]
-pub struct CreateBikeData {
+pub struct NewBikeData {
     pub voltage: Option<i32>,
     pub rpm: Option<i32>,
     pub current: Option<i32>,
+}
+
+#[derive(Deserialize)]
+pub struct NewMicrogridData {
+    pub temperature: Option<f32>,
+    pub power: Option<f32>,
 }
 
 // impl DbData and DataQuery
@@ -74,6 +79,23 @@ impl DataQuery for OvenData {
     
         Ok(data)    
     }
+
+    fn insert(
+        conn: &PgConnection,
+        oven_id: i32,
+        data: Self::NewData,
+    ) -> Result<(), diesel::result::Error> {
+        use super::schema::oven_data::dsl::*;
+
+        let _data = diesel::insert_into(oven_data)
+            .values((
+                oven.eq(oven_id),
+                temperature.eq(data.temperature),
+            ))
+            .execute(conn)?;
+    
+        Ok(())
+    }
 }
 
 // BikeData
@@ -88,7 +110,7 @@ impl DbData for BikeData {
 }
 
 impl DataQuery for BikeData {
-    type NewData = CreateBikeData;
+    type NewData = NewBikeData;
 
     fn data_type() -> &'static str { "Bike" }
 
@@ -140,7 +162,7 @@ impl DbData for SolarMicrogridData {
 }
 
 impl DataQuery for SolarMicrogridData {
-    type NewData = ();
+    type NewData = NewMicrogridData;
 
     fn data_type() -> &'static str { "SolarMicrogrid" }
 
@@ -161,10 +183,20 @@ impl DataQuery for SolarMicrogridData {
     }
 
     fn insert(
-        _conn: &PgConnection,
-        _id: i32,
-        _data: Self::NewData,
+        conn: &PgConnection,
+        solar_microgrid_id: i32,
+        data: Self::NewData,
     ) -> Result<(), diesel::result::Error> {
+        use super::schema::solar_microgrid_data::dsl::*;
+
+        let _data = diesel::insert_into(solar_microgrid_data)
+            .values((
+                solar_microgrid.eq(solar_microgrid_id),
+                power.eq(data.power),
+                temperature.eq(data.temperature),
+            ))
+            .execute(conn)?;
+    
         Ok(())
     }
 }

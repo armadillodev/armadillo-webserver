@@ -39,6 +39,7 @@ pub struct Bike {
 pub struct SolarMicogrid {
     pub id: i32,
     pub trailer: i32,
+    pub capacity: Option<f32>,
 }
 
 #[derive(Queryable, Serialize)]
@@ -82,6 +83,5 @@ pub struct SolarMicrogridData {
     pub solar_microgrid: i32,
     pub created_at: SystemTime,
     pub temperature: Option<f32>,
-    pub capacity: Option<f32>,
     pub power: Option<f32>,
 }

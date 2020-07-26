@@ -17,13 +17,23 @@ pub trait DataQuery: Sized {
         conn: &PgConnection,
         id: i32,
         data: Self::NewData,
-    ) -> Result<(), diesel::result::Error>;
+    ) -> Result<(), diesel::result::Error> {
+        Ok(())
+    }
 }
 
 #[derive(Deserialize)]
 pub struct NewOvenData {
     pub oven: i32,
     pub temperature: Option<f32>,
+}
+
+// fields for creating new data row
+#[derive(Deserialize)]
+pub struct CreateBikeData {
+    pub voltage: Option<i32>,
+    pub rpm: Option<i32>,
+    pub current: Option<i32>,
 }
 
 impl DataQuery for OvenData {
@@ -44,22 +54,44 @@ impl DataQuery for OvenData {
     
         Ok(data)    
     }
+}
+
+impl DataQuery for BikeData {
+    type NewData = CreateBikeData;
+    fn find(
+        conn: &PgConnection,
+        bike_id: i32,
+        count: i32,
+    ) -> Result<Vec<Self>, diesel::result::Error> {
+        use super::schema::bike_data::dsl::*;
+
+        let data = bike_data
+            .filter(bike.eq(bike_id))
+            .order(created_at.desc())
+            .limit(count as i64)
+            .load::<BikeData>(conn)?;
+    
+        Ok(data)    
+    }
 
     fn insert(
         conn: &PgConnection,
-        id: i32,
+        bike_id: i32,
         data: Self::NewData,
     ) -> Result<(), diesel::result::Error> {
-        Ok(())
-    }
-}
+        use super::schema::bike_data::dsl::*;
 
-// fields for creating new data row
-#[derive(Deserialize)]
-pub struct CreateBikeData {
-    pub voltage: Option<i32>,
-    pub rpm: Option<i32>,
-    pub current: Option<i32>,
+        let _data = diesel::insert_into(bike_data)
+            .values((
+                bike.eq(bike_id),
+                voltage.eq(data.voltage),
+                current.eq(data.current),
+                rpm.eq(data.rpm),
+            ))
+            .execute(conn)?;
+    
+        Ok(())    
+    }
 }
 
 // get some number of data rows for a bike

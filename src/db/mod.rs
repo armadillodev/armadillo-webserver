@@ -10,7 +10,7 @@ pub use models::{
     Trailer,
     Org,
     Oven,
-    SolarMicogrid,
+    SolarMicrogrid,
     BikeData,
     OvenData,
     SolarMicrogridData,

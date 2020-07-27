@@ -36,7 +36,7 @@ pub struct Bike {
 }
 
 #[derive(Queryable, Serialize)]
-pub struct SolarMicogrid {
+pub struct SolarMicrogrid {
     pub id: i32,
     pub trailer: i32,
     pub capacity: Option<f32>,

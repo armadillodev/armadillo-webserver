@@ -4,7 +4,7 @@ use diesel::prelude::*;
 use diesel::PgConnection;
 use diesel::result::Error;
 
-use super::models::{ Org, Trailer, Bike };
+use super::models::{ Org, Trailer, Bike, Oven, SolarMicrogrid };
 
 pub trait DbEntity: Sized {
     fn by_id(conn: &PgConnection, id: i32) -> Result<Option<Self>, Error>;
@@ -72,6 +72,48 @@ impl DbEntity for Bike {
         let results = bikes
             .filter(trailer.eq(id))
             .load::<Bike>(conn);
+    
+        results
+    }
+}
+
+impl DbEntity for Oven {
+    fn by_id(conn: &PgConnection, id: i32) -> Result<Option<Self>, Error> {
+        use super::schema::ovens::dsl::*;
+        let result = ovens
+            .filter(oven_id.eq(id))
+            .first::<Oven>(conn)
+            .optional()?;
+    
+        Ok(result)
+    }
+
+    fn by_parent_id(conn: &PgConnection, id: i32) -> Result<Vec<Self>, Error> {
+        use super::schema::ovens::dsl::*;
+        let results = ovens
+            .filter(trailer.eq(id))
+            .load::<Oven>(conn);
+    
+        results
+    }
+}
+
+impl DbEntity for SolarMicrogrid {
+    fn by_id(conn: &PgConnection, id: i32) -> Result<Option<Self>, Error> {
+        use super::schema::solar_microgrids::dsl::*;
+        let result = solar_microgrids
+            .filter(solar_microgrid_id.eq(id))
+            .first::<SolarMicrogrid>(conn)
+            .optional()?;
+    
+        Ok(result)
+    }
+
+    fn by_parent_id(conn: &PgConnection, id: i32) -> Result<Vec<Self>, Error> {
+        use super::schema::solar_microgrids::dsl::*;
+        let results = solar_microgrids
+            .filter(trailer.eq(id))
+            .load::<SolarMicrogrid>(conn);
     
         results
     }

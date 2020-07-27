@@ -2,7 +2,7 @@ use diesel::PgConnection;
 use actix_web::{web, Error, HttpResponse, Responder};
 use serde::Serialize;
 use crate::DbPool;
-use super::db::{self, DbEntity, Org, Bike, Trailer};
+use super::db::{DbEntity, Org, Bike, Trailer, Oven, SolarMicrogrid};
 
 #[derive(Serialize)]
 struct OrgStructure {
@@ -51,8 +51,14 @@ impl OrgStructure {
                     .iter()
                     .map(|bike| BikeNode { id: bike.id })
                     .collect::<Vec<_>>(),
-                ovens: Vec::new(),
-                microgrids: Vec::new(),
+                ovens: Oven::by_parent_id(conn, trailer.id)?
+                    .iter()
+                    .map(|oven| OvenNode { id: oven.id })
+                    .collect::<Vec<_>>(),
+                microgrids: SolarMicrogrid::by_parent_id(conn, trailer.id)?
+                    .iter()
+                    .map(|microgrid| MicrogridNode { id: microgrid.id })
+                    .collect::<Vec<_>>(),
             }))
             .collect::<Result<Vec<_>, diesel::result::Error>>()?;
 
@@ -107,22 +113,22 @@ pub async fn get_org_list(
 
 // get org id of a bike for authentication
 pub async fn get_org_id_for_bike(
-    pool: web::Data<DbPool>,
-    bike_id: web::Path<i32>,
-) -> Result<impl Responder, Error> {
+    _pool: web::Data<DbPool>,
+    _bike_id: web::Path<i32>,
+) -> Result<HttpResponse, Error> {
     unimplemented!("This is not used");
-    let bike_id = bike_id.into_inner();
-    let conn = pool.get().expect("couldn't get connection from pool");
+    // let bike_id = bike_id.into_inner();
+    // let conn = pool.get().expect("couldn't get connection from pool");
 
-    let org_id = web::block(move || db::orgs::find_org_id_by_bike_id(&conn, bike_id))
-        .await
-        .map_err(|e| {
-            error!("{}", e);
-            HttpResponse::InternalServerError().finish()
-        })?;
+    // let org_id = web::block(move || db::orgs::find_org_id_by_bike_id(&conn, bike_id))
+    //     .await
+    //     .map_err(|e| {
+    //         error!("{}", e);
+    //         HttpResponse::InternalServerError().finish()
+    //     })?;
 
-    Ok(match org_id {
-        None => HttpResponse::NotFound().finish(),
-        Some(org_id) => HttpResponse::Ok().json(org_id)
-    })
+    // Ok(match org_id {
+    //     None => HttpResponse::NotFound().finish(),
+    //     Some(org_id) => HttpResponse::Ok().json(org_id)
+    // })
 }

@@ -5,6 +5,12 @@ pub mod data;
 pub mod orgs;
 
 pub use models::{
+    Bike,
+    User,
+    Trailer,
+    Org,
+    Oven,
+    SolarMicogrid,
     BikeData,
     OvenData,
     SolarMicrogridData,
@@ -18,5 +24,7 @@ pub enum Address {
 }
 
 pub use data::DataQuery;
+pub use data::DbData;
+pub use orgs::DbEntity;
 //mod logs;
 //mod users;

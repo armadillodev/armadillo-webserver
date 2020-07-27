@@ -2,7 +2,7 @@ use diesel::PgConnection;
 use actix_web::{web, Error, HttpResponse, Responder};
 use serde::Serialize;
 use crate::DbPool;
-use super::db;
+use super::db::{self, DbEntity, Org, Bike, Trailer};
 
 #[derive(Serialize)]
 struct OrgStructure {
@@ -17,28 +17,42 @@ pub struct TrailerNode {
     name: String,
     location: String,
     bikes: Vec<BikeNode>,
+    ovens: Vec<OvenNode>,
+    microgrids: Vec<MicrogridNode>,
 }
 #[derive(Serialize)]
 pub struct BikeNode {
     id: i32,
 }
 
+#[derive(Serialize)]
+pub struct OvenNode {
+    id: i32,
+}
+
+#[derive(Serialize)]
+pub struct MicrogridNode {
+    id: i32,
+}
+
 impl OrgStructure {
     fn new(conn: &PgConnection, org_id: i32) -> Result<Option<Self>, diesel::result::Error> {
-        let org = match db::orgs::find_org_by_id(conn, org_id)? {
+        let org = match Org::by_id(conn, org_id)? {
             Some(org) => org,
             None => return Ok(None),
         };
-        let trailers = db::orgs::find_trailers_by_org_id(conn, org_id)?;
+        let trailers = Trailer::by_parent_id(conn, org_id)?;
         let trailers = trailers.into_iter()
             .map(|trailer| Ok(TrailerNode {
                 id: trailer.id,
                 name: trailer.name,
                 location: trailer.location,
-                bikes: db::orgs::find_bikes_by_trailer_id(conn, trailer.id)?
+                bikes: Bike::by_parent_id(conn, trailer.id)?
                     .iter()
                     .map(|bike| BikeNode { id: bike.id })
                     .collect::<Vec<_>>(),
+                ovens: Vec::new(),
+                microgrids: Vec::new(),
             }))
             .collect::<Result<Vec<_>, diesel::result::Error>>()?;
 
@@ -77,7 +91,7 @@ pub async fn get_org_list(
 ) -> Result<impl Responder, Error> {
     let conn = pool.get().expect("couldn't get connection from pool");
 
-    let orgs = web::block(move || db::orgs::find_orgs(&conn))
+    let orgs = web::block(move || Org::all(&conn))
         .await
         .map_err(|e| {
             error!("{}", e);
@@ -96,6 +110,7 @@ pub async fn get_org_id_for_bike(
     pool: web::Data<DbPool>,
     bike_id: web::Path<i32>,
 ) -> Result<impl Responder, Error> {
+    unimplemented!("This is not used");
     let bike_id = bike_id.into_inner();
     let conn = pool.get().expect("couldn't get connection from pool");
 

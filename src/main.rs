@@ -53,7 +53,7 @@ async fn main() -> std::io::Result<()> {
     let bike_server = ws::UpdateServer::new().start();
 
     // start server
-    let bind = "0.0.0.0:3001";
+    let bind = std::env::var("BIND_TO").unwrap_or(String::from("0.0.0.0:3001"));
 
     println!("starting server at: {}", bind);
 

@@ -1,8 +1,8 @@
+use super::models::{BikeData, OvenData, SolarMicrogridData};
+use super::Address;
 use diesel::prelude::*;
 use diesel::PgConnection;
 use serde::Deserialize;
-use super::models::{BikeData, OvenData, SolarMicrogridData};
-use super::Address;
 
 pub trait DbData: Send + Sync {
     fn id(&self) -> Address;
@@ -14,17 +14,9 @@ pub trait DataQuery: DbData + Sized {
 
     fn data_type() -> &'static str;
 
-    fn find(
-        conn: &PgConnection,
-        id: i32,
-        count: i32,
-    ) -> Result<Vec<Self>, diesel::result::Error>;
+    fn find(conn: &PgConnection, id: i32, count: i32) -> Result<Vec<Self>, diesel::result::Error>;
 
-    fn insert(
-        _conn: &PgConnection,
-        _id: i32,
-        _data: Self::NewData,
-    ) -> Result<(), diesel::result::Error> {
+    fn insert(_conn: &PgConnection, _id: i32, _data: Self::NewData) -> Result<(), diesel::result::Error> {
         Ok(())
     }
 }
@@ -62,13 +54,11 @@ impl DbData for OvenData {
 
 impl DataQuery for OvenData {
     type NewData = NewOvenData;
-    fn data_type() -> &'static str { "Oven" }
+    fn data_type() -> &'static str {
+        "Oven"
+    }
 
-    fn find(
-        conn: & PgConnection,
-        oven_id: i32,
-        count: i32,
-    ) -> Result<Vec<OvenData>, diesel::result::Error> {
+    fn find(conn: &PgConnection, oven_id: i32, count: i32) -> Result<Vec<OvenData>, diesel::result::Error> {
         use super::schema::oven_data::dsl::*;
 
         let data = oven_data
@@ -76,24 +66,17 @@ impl DataQuery for OvenData {
             .order(created_at.desc())
             .limit(count as i64)
             .load::<OvenData>(conn)?;
-    
-        Ok(data)    
+
+        Ok(data)
     }
 
-    fn insert(
-        conn: &PgConnection,
-        oven_id: i32,
-        data: Self::NewData,
-    ) -> Result<(), diesel::result::Error> {
+    fn insert(conn: &PgConnection, oven_id: i32, data: Self::NewData) -> Result<(), diesel::result::Error> {
         use super::schema::oven_data::dsl::*;
 
         let _data = diesel::insert_into(oven_data)
-            .values((
-                oven.eq(oven_id),
-                temperature.eq(data.temperature),
-            ))
+            .values((oven.eq(oven_id), temperature.eq(data.temperature)))
             .execute(conn)?;
-    
+
         Ok(())
     }
 }
@@ -112,13 +95,11 @@ impl DbData for BikeData {
 impl DataQuery for BikeData {
     type NewData = NewBikeData;
 
-    fn data_type() -> &'static str { "Bike" }
+    fn data_type() -> &'static str {
+        "Bike"
+    }
 
-    fn find(
-        conn: &PgConnection,
-        bike_id: i32,
-        count: i32,
-    ) -> Result<Vec<Self>, diesel::result::Error> {
+    fn find(conn: &PgConnection, bike_id: i32, count: i32) -> Result<Vec<Self>, diesel::result::Error> {
         use super::schema::bike_data::dsl::*;
 
         let data = bike_data
@@ -126,15 +107,11 @@ impl DataQuery for BikeData {
             .order(created_at.desc())
             .limit(count as i64)
             .load::<BikeData>(conn)?;
-    
-        Ok(data)    
+
+        Ok(data)
     }
 
-    fn insert(
-        conn: &PgConnection,
-        bike_id: i32,
-        data: Self::NewData,
-    ) -> Result<(), diesel::result::Error> {
+    fn insert(conn: &PgConnection, bike_id: i32, data: Self::NewData) -> Result<(), diesel::result::Error> {
         use super::schema::bike_data::dsl::*;
 
         let _data = diesel::insert_into(bike_data)
@@ -145,8 +122,8 @@ impl DataQuery for BikeData {
                 rpm.eq(data.rpm),
             ))
             .execute(conn)?;
-    
-        Ok(())    
+
+        Ok(())
     }
 }
 
@@ -164,13 +141,11 @@ impl DbData for SolarMicrogridData {
 impl DataQuery for SolarMicrogridData {
     type NewData = NewMicrogridData;
 
-    fn data_type() -> &'static str { "SolarMicrogrid" }
+    fn data_type() -> &'static str {
+        "SolarMicrogrid"
+    }
 
-    fn find(
-        conn: &PgConnection,
-        solar_microgrid_id: i32,
-        count: i32,
-    ) -> Result<Vec<Self>, diesel::result::Error> {
+    fn find(conn: &PgConnection, solar_microgrid_id: i32, count: i32) -> Result<Vec<Self>, diesel::result::Error> {
         use super::schema::solar_microgrid_data::dsl::*;
 
         let data = solar_microgrid_data
@@ -178,15 +153,11 @@ impl DataQuery for SolarMicrogridData {
             .order(created_at.desc())
             .limit(count as i64)
             .load::<SolarMicrogridData>(conn)?;
-    
+
         Ok(data)
     }
 
-    fn insert(
-        conn: &PgConnection,
-        solar_microgrid_id: i32,
-        data: Self::NewData,
-    ) -> Result<(), diesel::result::Error> {
+    fn insert(conn: &PgConnection, solar_microgrid_id: i32, data: Self::NewData) -> Result<(), diesel::result::Error> {
         use super::schema::solar_microgrid_data::dsl::*;
 
         let _data = diesel::insert_into(solar_microgrid_data)
@@ -196,7 +167,7 @@ impl DataQuery for SolarMicrogridData {
                 temperature.eq(data.temperature),
             ))
             .execute(conn)?;
-    
+
         Ok(())
     }
 }

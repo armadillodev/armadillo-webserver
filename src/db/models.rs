@@ -1,5 +1,5 @@
-use std::time::SystemTime;
 use serde::Serialize;
+use std::time::SystemTime;
 
 #[derive(Queryable, Serialize)]
 pub struct Org {

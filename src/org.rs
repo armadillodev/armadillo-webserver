@@ -1,8 +1,8 @@
-use diesel::PgConnection;
-use actix_web::{web, Error, HttpResponse, Responder};
-use serde::Serialize;
+use super::db::{Bike, DbEntity, Org, Oven, SolarMicrogrid, Trailer};
 use crate::DbPool;
-use super::db::{DbEntity, Org, Bike, Trailer, Oven, SolarMicrogrid};
+use actix_web::{web, Error, HttpResponse, Responder};
+use diesel::PgConnection;
+use serde::Serialize;
 
 #[derive(Serialize)]
 struct OrgStructure {
@@ -42,24 +42,27 @@ impl OrgStructure {
             None => return Ok(None),
         };
         let trailers = Trailer::by_parent_id(conn, org_id)?;
-        let trailers = trailers.into_iter()
-            .map(|trailer| Ok(TrailerNode {
-                id: trailer.id,
-                name: trailer.name,
-                location: trailer.location,
-                bikes: Bike::by_parent_id(conn, trailer.id)?
-                    .iter()
-                    .map(|bike| BikeNode { id: bike.id })
-                    .collect::<Vec<_>>(),
-                ovens: Oven::by_parent_id(conn, trailer.id)?
-                    .iter()
-                    .map(|oven| OvenNode { id: oven.id })
-                    .collect::<Vec<_>>(),
-                microgrids: SolarMicrogrid::by_parent_id(conn, trailer.id)?
-                    .iter()
-                    .map(|microgrid| MicrogridNode { id: microgrid.id })
-                    .collect::<Vec<_>>(),
-            }))
+        let trailers = trailers
+            .into_iter()
+            .map(|trailer| {
+                Ok(TrailerNode {
+                    id: trailer.id,
+                    name: trailer.name,
+                    location: trailer.location,
+                    bikes: Bike::by_parent_id(conn, trailer.id)?
+                        .iter()
+                        .map(|bike| BikeNode { id: bike.id })
+                        .collect::<Vec<_>>(),
+                    ovens: Oven::by_parent_id(conn, trailer.id)?
+                        .iter()
+                        .map(|oven| OvenNode { id: oven.id })
+                        .collect::<Vec<_>>(),
+                    microgrids: SolarMicrogrid::by_parent_id(conn, trailer.id)?
+                        .iter()
+                        .map(|microgrid| MicrogridNode { id: microgrid.id })
+                        .collect::<Vec<_>>(),
+                })
+            })
             .collect::<Result<Vec<_>, diesel::result::Error>>()?;
 
         Ok(Some(OrgStructure {
@@ -71,10 +74,7 @@ impl OrgStructure {
 }
 
 // get the structure of the organization
-pub async fn get_org_structure(
-    pool: web::Data<DbPool>,
-    org_id: web::Path<i32>,
-) -> Result<impl Responder, Error> {
+pub async fn get_org_structure(pool: web::Data<DbPool>, org_id: web::Path<i32>) -> Result<impl Responder, Error> {
     let org_id = org_id.into_inner();
     let conn = pool.get().expect("couldn't get connection from pool");
 
@@ -92,17 +92,13 @@ pub async fn get_org_structure(
 }
 
 // get a list of orgs
-pub async fn get_org_list(
-    pool: web::Data<DbPool>,
-) -> Result<impl Responder, Error> {
+pub async fn get_org_list(pool: web::Data<DbPool>) -> Result<impl Responder, Error> {
     let conn = pool.get().expect("couldn't get connection from pool");
 
-    let orgs = web::block(move || Org::all(&conn))
-        .await
-        .map_err(|e| {
-            error!("{}", e);
-            HttpResponse::InternalServerError().finish()
-        })?;
+    let orgs = web::block(move || Org::all(&conn)).await.map_err(|e| {
+        error!("{}", e);
+        HttpResponse::InternalServerError().finish()
+    })?;
 
     if orgs.len() == 0 {
         return Ok(HttpResponse::NotFound().finish());
@@ -112,10 +108,7 @@ pub async fn get_org_list(
 }
 
 // get org id of a bike for authentication
-pub async fn get_org_id_for_bike(
-    _pool: web::Data<DbPool>,
-    _bike_id: web::Path<i32>,
-) -> Result<HttpResponse, Error> {
+pub async fn get_org_id_for_bike(_pool: web::Data<DbPool>, _bike_id: web::Path<i32>) -> Result<HttpResponse, Error> {
     unimplemented!("This is not used");
     // let bike_id = bike_id.into_inner();
     // let conn = pool.get().expect("couldn't get connection from pool");

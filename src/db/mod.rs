@@ -1,20 +1,10 @@
-mod schema;
 pub mod models;
+mod schema;
 
 pub mod data;
 pub mod orgs;
 
-pub use models::{
-    Bike,
-    User,
-    Trailer,
-    Org,
-    Oven,
-    SolarMicrogrid,
-    BikeData,
-    OvenData,
-    SolarMicrogridData,
-};
+pub use models::{Bike, BikeData, Org, Oven, OvenData, SolarMicrogrid, SolarMicrogridData, Trailer, User};
 
 #[derive(Hash, Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Address {

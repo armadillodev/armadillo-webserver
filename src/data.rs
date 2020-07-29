@@ -1,11 +1,11 @@
+use crate::ws::{Update, UpdateServer};
 use actix::Addr;
-use crate::ws::{UpdateServer, Update};
-use actix_web::{web, Responder, Error, HttpResponse};
-use serde::{Serialize, Deserialize};
+use actix_web::{web, Error, HttpResponse, Responder};
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use crate::DbPool;
 use super::db::DataQuery;
+use crate::DbPool;
 
 #[derive(Deserialize)]
 pub struct Info {
@@ -13,23 +13,22 @@ pub struct Info {
 }
 
 // route for getting data
-pub async fn get_data<D> (
+pub async fn get_data<D>(
     pool: web::Data<DbPool>,
     id: web::Path<i32>,
     info: web::Query<Info>,
-) -> Result<impl Responder, Error> 
-where D: 'static + DataQuery + Serialize + Send
+) -> Result<impl Responder, Error>
+where
+    D: 'static + DataQuery + Serialize + Send,
 {
     let id = id.into_inner();
     let conn = pool.get().expect("couldn't get db connection from pool");
     let count = info.count.unwrap_or(100);
 
-    let data = web::block(move || D::find(&conn, id, count))
-        .await
-        .map_err(|e| {
-            error!("{}", e);
-            HttpResponse::InternalServerError().finish()
-        })?;
+    let data = web::block(move || D::find(&conn, id, count)).await.map_err(|e| {
+        error!("{}", e);
+        HttpResponse::InternalServerError().finish()
+    })?;
 
     if data.len() == 0 {
         Ok(HttpResponse::NotFound().body(format!("no data with id: {} was found for {}", id, D::data_type())))
@@ -39,33 +38,30 @@ where D: 'static + DataQuery + Serialize + Send
 }
 
 // route for posting data
-pub async fn post_data<D> (
+pub async fn post_data<D>(
     pool: web::Data<DbPool>,
     id: web::Path<i32>,
     data: web::Json<D::NewData>,
     update_server: web::Data<Addr<UpdateServer>>,
 ) -> Result<impl Responder, Error>
-where D: 'static + DataQuery + Serialize + Send
+where
+    D: 'static + DataQuery + Serialize + Send,
 {
     let id = id.into_inner();
     let conn = pool.get().expect("couldn't get connection from pool");
     let data = data.into_inner();
 
-    let _updated_data = web::block(move || D::insert(&conn, id, data))
-        .await
-        .map_err(|e| {
-            error!("{}", e);
-            HttpResponse::InternalServerError().finish()
-        })?;
+    let _updated_data = web::block(move || D::insert(&conn, id, data)).await.map_err(|e| {
+        error!("{}", e);
+        HttpResponse::InternalServerError().finish()
+    })?;
 
     let conn = pool.get().expect("couldn't get connection from pool");
 
-    let mut data = web::block(move || D::find(&conn, id, 1))
-        .await
-        .map_err(|e| {
-            error!("{}", e);
-            HttpResponse::InternalServerError().finish()
-        })?;
+    let mut data = web::block(move || D::find(&conn, id, 1)).await.map_err(|e| {
+        error!("{}", e);
+        HttpResponse::InternalServerError().finish()
+    })?;
 
     // send data to update server
     if data.len() != 0 {
@@ -91,6 +87,6 @@ pub async fn get_latest_bike_data(pool: web::Data<DbPool>, bike_id: web::Path<i3
     if bike_data.len() == 0 {
         return Ok(HttpResponse::NotFound().body(format!("no bike data with id: {} was found", bike_id)));
     }
-    
+
     Ok(HttpResponse::Ok().json(bike_data.pop().unwrap()))
 }

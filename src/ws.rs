@@ -1,13 +1,13 @@
+use crate::db::{data::DbData, Address};
 use actix::prelude::*;
 use actix::{Actor, StreamHandler};
-use actix_web::{web, Error, HttpResponse, HttpRequest};
+use actix_web::{web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
-use std::time::{Duration, Instant};
 use std::collections::HashMap;
 use std::sync::Arc;
-use crate::db::{data::DbData, Address};
+use std::time::{Duration, Instant};
 
-const HEARTBEAT_INTERVAL: Duration =  Duration::from_secs(5);
+const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
 type SendData = Arc<dyn DbData>;
@@ -66,7 +66,8 @@ impl Handler<Connect> for UpdateServer {
 
         info!("adding listener: {} for {:?}", id, address);
 
-        self.listener_map.entry(address)
+        self.listener_map
+            .entry(address)
             .or_insert(HashMap::new())
             .insert(id, msg.recipient);
 
@@ -113,7 +114,7 @@ impl Actor for WsBikeUpdates {
 
         let addr = ctx.address();
         self.addr
-            .send(Connect{
+            .send(Connect {
                 recipient: addr.recipient(),
                 subject: self.address,
             })
@@ -129,7 +130,7 @@ impl Actor for WsBikeUpdates {
     }
 
     fn stopping(&mut self, _: &mut Self::Context) -> Running {
-        self.addr.do_send(Disconnect{ id: self.id });
+        self.addr.do_send(Disconnect { id: self.id });
         Running::Stop
     }
 }
@@ -144,11 +145,7 @@ impl Handler<Update> for WsBikeUpdates {
 }
 
 impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsBikeUpdates {
-    fn handle(
-        &mut self,
-        msg: Result<ws::Message, ws::ProtocolError>,
-        ctx: &mut Self::Context,
-    ) {
+    fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
         let msg = match msg {
             Err(_) => {
                 ctx.stop();

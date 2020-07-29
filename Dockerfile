@@ -6,8 +6,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 	--mount=type=cache,target=/app/target \
 	cargo install --path .
 
-FROM ubuntu:18.04
-RUN apt-get update && apt-get install -y \
-	libpq-dev
+FROM alpine:3.7
+RUN apk add --no-cache libpq
 COPY --from=builder /usr/local/cargo/bin/armadillo-webserver /usr/local/bin/armadillo-webserver
 CMD ["armadillo-webserver"]

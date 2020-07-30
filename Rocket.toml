@@ -1,5 +1,0 @@
-[development]
-address = "localhost"
-
-[global.databases]
-db_records = { url = "postgres://postgres:postgres@localhost/armadillo"}

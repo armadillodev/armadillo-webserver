@@ -1,8 +1,5 @@
-use crate::ws::{Update, UpdateServer};
-use actix::Addr;
 use actix_web::{web, Error, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 
 use super::db::DataQuery;
 use crate::DbPool;
@@ -42,7 +39,6 @@ pub async fn post_data<D>(
     pool: web::Data<DbPool>,
     id: web::Path<i32>,
     data: web::Json<D::NewData>,
-    update_server: web::Data<Addr<UpdateServer>>,
 ) -> Result<impl Responder, Error>
 where
     D: 'static + DataQuery + Serialize + Send,
@@ -55,19 +51,6 @@ where
         error!("{}", e);
         HttpResponse::InternalServerError().finish()
     })?;
-
-    let conn = pool.get().expect("couldn't get connection from pool");
-
-    let mut data = web::block(move || D::find(&conn, id, 1)).await.map_err(|e| {
-        error!("{}", e);
-        HttpResponse::InternalServerError().finish()
-    })?;
-
-    // send data to update server
-    if data.len() != 0 {
-        let data = Arc::new(data.pop().unwrap());
-        update_server.do_send(Update(data));
-    }
 
     // no need to send data back
     Ok(HttpResponse::Ok().finish())

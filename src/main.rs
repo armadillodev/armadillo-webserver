@@ -8,7 +8,6 @@ extern crate diesel_migrations;
 #[macro_use]
 extern crate log;
 
-use actix::prelude::*;
 use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
 use diesel::r2d2::{self, ConnectionManager};
@@ -17,7 +16,6 @@ use diesel::PgConnection;
 mod data;
 mod db;
 mod org;
-mod ws;
 
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
@@ -49,9 +47,6 @@ async fn main() -> std::io::Result<()> {
     // run migrations
     run_db_migrations(pool.clone()).unwrap();
 
-    // start bike update server
-    let bike_server = ws::UpdateServer::new().start();
-
     // start server
     let bind = std::env::var("BIND_TO").unwrap_or(String::from("0.0.0.0:3001"));
 
@@ -60,7 +55,6 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .data(pool.clone())
-            .data(bike_server.clone())
             .wrap(Logger::default())
             .service(
                 web::scope("/data")
@@ -68,7 +62,6 @@ async fn main() -> std::io::Result<()> {
                     .route("/bike/{bike_id}", web::post().to(data::post_data::<db::BikeData>))
                     .route("/bike/{bike_id}/latest", web::get().to(data::get_latest_bike_data))
                     .route("/bike/{bike_id}/org", web::get().to(org::get_org_id_for_bike))
-                    .route("/bike/{bike_id}/ws", web::get().to(ws::ws_bike_updates))
                     .route("/oven/{oven_id}", web::get().to(data::get_data::<db::OvenData>))
                     .route("/oven/{oven_id}", web::post().to(data::post_data::<db::OvenData>))
                     .route(
@@ -85,7 +78,6 @@ async fn main() -> std::io::Result<()> {
                     .route("/", web::get().to(org::get_org_list))
                     .route("/{org_id}", web::get().to(org::get_org_structure)),
             )
-            .service(web::scope("/ws").route("/bike/{bike_id}", web::get().to(ws::ws_bike_updates)))
     })
     .bind(&bind)?
     .run()

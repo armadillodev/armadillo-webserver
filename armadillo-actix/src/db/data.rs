@@ -1,8 +1,10 @@
-use super::models::{BikeData, OvenData, SolarMicrogridData};
-use super::Address;
 use diesel::prelude::*;
 use diesel::PgConnection;
 use serde::Deserialize;
+
+use super::bike::Bike;
+use super::models::{BikeData, OvenData, SolarMicrogridData};
+use super::Address;
 
 pub trait DbData: Send + Sync {
     fn id(&self) -> Address;

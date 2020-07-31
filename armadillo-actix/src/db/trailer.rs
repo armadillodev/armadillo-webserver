@@ -4,38 +4,42 @@ use diesel::dsl::Select;
 use diesel::prelude::*;
 
 use super::schema::trailers;
+use super::Record;
 
 #[rustfmt_skip]
 type AllColumns = (
     trailers::trailer_id,
     trailers::name,
     trailers::location,
-    trailer::org
+    trailers::org
 );
 #[rustfmt_skip]
 const ALL_COLUMNS: AllColumns = (
     trailers::trailer_id,
     trailers::name,
     trailers::location,
-    trailer::org
+    trailers::org
 );
 
-type All = Select<bikes::table, AllColumns>;
-type WithId = Eq<bikes::bike_id, i32>;
+type All = Select<trailers::table, AllColumns>;
+type WithId = Eq<trailers::trailer_id, i32>;
 type ById = Filter<All, WithId>;
 
 fn with_id(id: i32) -> WithId {
-    bikes::bike_id.eq(id)
+    trailers::trailer_id.eq(id)
 }
 
-pub struct Trailer;
+pub struct TrailerRecord;
 
-impl Trailer {
-    pub fn all() -> All {
+impl Record for TrailerRecord {
+    type All = All;
+    type ById = ById;
+
+    fn all() -> All {
         trailers::table.select(ALL_COLUMNS)
     }
 
-    pub fn by_id(id: i32) -> ById {
+    fn by_id(id: i32) -> ById {
         Self::all().filter(with_id(id))
     }
 }

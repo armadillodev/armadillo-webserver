@@ -1,6 +1,7 @@
 pub mod models;
 mod schema;
 
+pub mod bike;
 pub mod data;
 pub mod orgs;
 

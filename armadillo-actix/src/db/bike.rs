@@ -3,36 +3,24 @@ use diesel::dsl::Filter;
 use diesel::dsl::Select;
 use diesel::prelude::*;
 
-use super::schema::trailers;
+use super::schema::bikes;
 
-#[rustfmt_skip]
-type AllColumns = (
-    trailers::trailer_id,
-    trailers::name,
-    trailers::location,
-    trailer::org
-);
-#[rustfmt_skip]
-const ALL_COLUMNS: AllColumns = (
-    trailers::trailer_id,
-    trailers::name,
-    trailers::location,
-    trailer::org
-);
+type AllColumns = (bikes::bike_id, bikes::trailer);
+const ALL_COLUMNS: AllColumns = (bikes::bike_id, bikes::trailer);
 
 type All = Select<bikes::table, AllColumns>;
 type WithId = Eq<bikes::bike_id, i32>;
 type ById = Filter<All, WithId>;
 
+pub struct Bike;
+
 fn with_id(id: i32) -> WithId {
     bikes::bike_id.eq(id)
 }
 
-pub struct Trailer;
-
-impl Trailer {
+impl Bike {
     pub fn all() -> All {
-        trailers::table.select(ALL_COLUMNS)
+        bikes::table.select(ALL_COLUMNS)
     }
 
     pub fn by_id(id: i32) -> ById {

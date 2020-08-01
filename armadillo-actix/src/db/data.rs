@@ -3,7 +3,7 @@ use diesel::PgConnection;
 use serde::Deserialize;
 
 use super::models::{BikeData, OvenData, SolarMicrogridData};
-use super::record::{BikeDataRecord, MicrogridDataRecord, OvenDataRecord};
+use super::record::{BikeDataRecord, DataRecord, MicrogridDataRecord, OvenDataRecord};
 
 pub trait DataQuery: Sized + Send + Sync {
     type NewData: Send;
@@ -39,11 +39,7 @@ impl DataQuery for OvenData {
     type NewData = NewOvenData;
 
     fn find(conn: &PgConnection, oven_id: i32, count: i32) -> Result<Vec<OvenData>, diesel::result::Error> {
-        use super::schema::oven_data::dsl::*;
-
-        let data = oven_data
-            .filter(oven.eq(oven_id))
-            .order(created_at.desc())
+        let data = OvenDataRecord::by_key_id(oven_id)
             .limit(count as i64)
             .load::<OvenData>(conn)?;
 
@@ -66,11 +62,7 @@ impl DataQuery for BikeData {
     type NewData = NewBikeData;
 
     fn find(conn: &PgConnection, bike_id: i32, count: i32) -> Result<Vec<Self>, diesel::result::Error> {
-        use super::schema::bike_data::dsl::*;
-
-        let data = bike_data
-            .filter(bike.eq(bike_id))
-            .order(created_at.desc())
+        let data = BikeDataRecord::by_key_id(bike_id)
             .limit(count as i64)
             .load::<BikeData>(conn)?;
 
@@ -98,11 +90,7 @@ impl DataQuery for SolarMicrogridData {
     type NewData = NewMicrogridData;
 
     fn find(conn: &PgConnection, solar_microgrid_id: i32, count: i32) -> Result<Vec<Self>, diesel::result::Error> {
-        use super::schema::solar_microgrid_data::dsl::*;
-
-        let data = solar_microgrid_data
-            .filter(solar_microgrid.eq(solar_microgrid_id))
-            .order(created_at.desc())
+        let data = MicrogridDataRecord::by_key_id(solar_microgrid_id)
             .limit(count as i64)
             .load::<SolarMicrogridData>(conn)?;
 

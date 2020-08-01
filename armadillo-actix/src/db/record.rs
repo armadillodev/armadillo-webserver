@@ -14,8 +14,17 @@ pub trait DataRecord: Record {
 
 macro_rules! make_record(
     (data_record $record_name:ident, $schema:ident, $key_id:ident) => {
+        use diesel::dsl::Order;
+        use diesel::dsl::Desc;
+
+        type WithOrder = Desc<$schema::created_at>;
+        type ByOrder = Order<All, WithOrder>;
         type WithKeyId = Eq<$schema::$key_id, i32>;
-        type ByKeyId = Filter<All, WithKeyId>;
+        type ByKeyId = Filter<ByOrder, WithKeyId>;
+
+        fn with_order() -> WithOrder {
+            $schema::created_at.desc()
+        }
 
         fn with_key_id(id: i32) -> WithKeyId {
             $schema::$key_id.eq(id)
@@ -25,7 +34,7 @@ macro_rules! make_record(
             type ByKeyId = ByKeyId;
 
             fn by_key_id(id: i32) -> ByKeyId {
-                Self::all().filter(with_key_id(id))
+                Self::all().order(with_order()).filter(with_key_id(id))
             }
         }
     };

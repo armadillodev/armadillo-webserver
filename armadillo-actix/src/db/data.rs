@@ -2,22 +2,13 @@ use diesel::prelude::*;
 use diesel::PgConnection;
 use serde::Deserialize;
 
-use super::bike::Bike;
 use super::models::{BikeData, OvenData, SolarMicrogridData};
-use super::Address;
+use super::record::{BikeDataRecord, MicrogridDataRecord, OvenDataRecord};
 
-pub trait DbData: Send + Sync {
-    fn id(&self) -> Address;
-    fn to_packet(&self) -> String;
-}
-
-pub trait DataQuery: DbData + Sized {
+pub trait DataQuery: Sized + Send + Sync {
     type NewData: Send;
 
-    fn data_type() -> &'static str;
-
     fn find(conn: &PgConnection, id: i32, count: i32) -> Result<Vec<Self>, diesel::result::Error>;
-
     fn insert(_conn: &PgConnection, _id: i32, _data: Self::NewData) -> Result<(), diesel::result::Error> {
         Ok(())
     }
@@ -44,21 +35,8 @@ pub struct NewMicrogridData {
 
 // impl DbData and DataQuery
 // Oven Data
-impl DbData for OvenData {
-    fn id(&self) -> Address {
-        Address::Oven(self.id)
-    }
-
-    fn to_packet(&self) -> String {
-        serde_json::to_string(self).unwrap()
-    }
-}
-
 impl DataQuery for OvenData {
     type NewData = NewOvenData;
-    fn data_type() -> &'static str {
-        "Oven"
-    }
 
     fn find(conn: &PgConnection, oven_id: i32, count: i32) -> Result<Vec<OvenData>, diesel::result::Error> {
         use super::schema::oven_data::dsl::*;
@@ -84,22 +62,8 @@ impl DataQuery for OvenData {
 }
 
 // BikeData
-impl DbData for BikeData {
-    fn id(&self) -> Address {
-        Address::Bike(self.id)
-    }
-
-    fn to_packet(&self) -> String {
-        serde_json::to_string(self).unwrap()
-    }
-}
-
 impl DataQuery for BikeData {
     type NewData = NewBikeData;
-
-    fn data_type() -> &'static str {
-        "Bike"
-    }
 
     fn find(conn: &PgConnection, bike_id: i32, count: i32) -> Result<Vec<Self>, diesel::result::Error> {
         use super::schema::bike_data::dsl::*;
@@ -130,22 +94,8 @@ impl DataQuery for BikeData {
 }
 
 // SolarMicrogridData
-impl DbData for SolarMicrogridData {
-    fn id(&self) -> Address {
-        Address::Microgrid(self.id)
-    }
-
-    fn to_packet(&self) -> String {
-        serde_json::to_string(self).unwrap()
-    }
-}
-
 impl DataQuery for SolarMicrogridData {
     type NewData = NewMicrogridData;
-
-    fn data_type() -> &'static str {
-        "SolarMicrogrid"
-    }
 
     fn find(conn: &PgConnection, solar_microgrid_id: i32, count: i32) -> Result<Vec<Self>, diesel::result::Error> {
         use super::schema::solar_microgrid_data::dsl::*;

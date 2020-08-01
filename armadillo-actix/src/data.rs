@@ -28,7 +28,7 @@ where
     })?;
 
     if data.len() == 0 {
-        Ok(HttpResponse::NotFound().body(format!("no data with id: {} was found for {}", id, D::data_type())))
+        Ok(HttpResponse::NotFound().body(format!("no data with id: {} was found for {}", id, std::any::type_name::<D>())))
     } else {
         Ok(HttpResponse::Ok().json(data))
     }

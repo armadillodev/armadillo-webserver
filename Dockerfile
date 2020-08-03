@@ -4,7 +4,7 @@ WORKDIR /app
 COPY . .
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
 	--mount=type=cache,target=/app/target \
-	cargo install --path .
+	cargo install --path ./armadillo-actix
 
 FROM ubuntu:18.04
 RUN apt-get update && apt-get install -y \

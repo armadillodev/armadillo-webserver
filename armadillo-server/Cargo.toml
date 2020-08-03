@@ -1,5 +1,5 @@
 [package]
-name = "armadillo-webserver"
+name = "armadillo-server"
 version = "0.1.0"
 authors = ["Kai Dewey <deweykai5@gmail.com>"]
 edition = "2018"

@@ -1,5 +1,5 @@
 [workspace]
 members = [
-    "armadillo-actix",
+    "armadillo-server",
     "armadillo-core",
 ]

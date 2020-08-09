@@ -71,7 +71,6 @@ table! {
         trailer_id -> Int4,
         name -> Text,
         location -> Text,
-        org -> Int4,
     }
 }
 
@@ -88,7 +87,7 @@ table! {
 table! {
     users (user_id) {
         user_id -> Int4,
-        org -> Int4,
+        trailer -> Int4,
         first_name -> Text,
         last_name -> Nullable<Text>,
     }
@@ -101,10 +100,9 @@ joinable!(ovens -> trailers (trailer));
 joinable!(solar_microgrid_data -> solar_microgrids (solar_microgrid));
 joinable!(solar_microgrids -> trailers (trailer));
 joinable!(trailer_data -> trailers (trailer));
-joinable!(trailers -> orgs (org));
 joinable!(user_logs -> bikes (bike));
 joinable!(user_logs -> users (client));
-joinable!(users -> orgs (org));
+joinable!(users -> trailers (trailer));
 
 allow_tables_to_appear_in_same_query!(
     bike_data,

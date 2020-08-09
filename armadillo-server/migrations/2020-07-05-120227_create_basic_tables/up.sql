@@ -4,15 +4,14 @@ CREATE TABLE orgs (
 );
 
 CREATE TABLE trailers (
-    trailer_id SERIAL NOT NULL PRIMARY KEY,
+    trailer_id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
-    location TEXT NOT NULL,
-    org INTEGER NOT NULL REFERENCES orgs(org_id) ON DELETE CASCADE
+    location TEXT NOT NULL
 );
 
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
-    org INTEGER NOT NULL REFERENCES orgs(org_id) ON DELETE CASCADE,
+    trailer INTEGER NOT NULL REFERENCES trailers(trailer_id) ON DELETE CASCADE,
     first_name TEXT NOT NULL,
     last_name TEXT
 );
@@ -52,32 +51,18 @@ CREATE TABLE bike_data (
 INSERT INTO orgs (name) VALUES ('Kai');
 INSERT INTO orgs (name) VALUES ('energilab');
 
-INSERT INTO trailers (name, location, org)
+INSERT INTO trailers (name, location)
 VALUES (
     'Kais House',
-    'Tokyo, Japan',
-    (SELECT org_id FROM orgs WHERE name='Kai')
+    'Tokyo, Japan'
 );
-INSERT INTO trailers (name, location, org)
+INSERT INTO trailers (name, location)
 VALUES (
     'Joes fan',
-    'Denver, CO',
-    (SELECT org_id FROM orgs WHERE name='energilab')
+    'Denver, CO'
 );
 
 INSERT INTO bikes (trailer)
 VALUES (
   (SELECT trailer_id FROM trailers WHERE name='Kais House')
-);
-
-INSERT INTO users (first_name, last_name, org)
-VALUES (
-    'Kai',
-    'Dewey',
-    (SELECT org_id FROM orgs WHERE name='Kai')
-);
-INSERT INTO users (first_name, org)
-VALUES (
-    'Joe',
-    (SELECT org_id FROM orgs WHERE name='energilab')
 );

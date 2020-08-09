@@ -12,7 +12,6 @@ pub struct Trailer {
     pub id: i32,
     pub name: String,
     pub location: String,
-    pub org: i32,
 }
 
 #[derive(Queryable, Serialize)]

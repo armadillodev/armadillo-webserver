@@ -149,7 +149,6 @@ make_record!(trailer, TrailerRecord, trailers, trailer_id, (
     trailers::trailer_id,
     trailers::name,
     trailers::location,
-    trailers::org
 ));
 
 // org

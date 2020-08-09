@@ -43,6 +43,13 @@ impl DbEntity for Trailer {
         Ok(result)
     }
 
+    fn all(conn: &PgConnection) -> Result<Vec<Self>, Error> {
+        use super::schema::trailers::dsl::*;
+        let results = trailers.load::<Trailer>(conn)?;
+
+        Ok(results)
+    }
+
     fn by_parent_id(conn: &PgConnection, id: i32) -> Result<Vec<Self>, Error> {
         use super::schema::trailers::dsl::*;
         let results = trailers.filter(org.eq(id)).load::<Trailer>(conn);

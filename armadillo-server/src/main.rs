@@ -16,6 +16,7 @@ use diesel::PgConnection;
 mod data;
 mod db;
 mod org;
+mod trailer;
 
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
@@ -74,9 +75,9 @@ async fn main() -> std::io::Result<()> {
                     ),
             )
             .service(
-                web::scope("/org")
-                    .route("/", web::get().to(org::get_org_list))
-                    .route("/{org_id}", web::get().to(org::get_org_structure)),
+                web::scope("/trailer")
+                    .route("", web::get().to(trailer::get_trailer_list))
+                    .route("/{trailer_id}", web::get().to(trailer::get_trailer_node)),
             )
     })
     .bind(&bind)?

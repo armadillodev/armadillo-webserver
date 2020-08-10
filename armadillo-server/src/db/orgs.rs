@@ -4,7 +4,7 @@ use diesel::prelude::*;
 use diesel::result::Error;
 use diesel::PgConnection;
 
-use super::models::{Bike, Org, Oven, SolarMicrogrid, Trailer};
+use super::models::{Bike, Oven, SolarMicrogrid, Trailer};
 
 pub trait DbEntity: Sized {
     fn by_id(conn: &PgConnection, id: i32) -> Result<Option<Self>, Error>;
@@ -16,22 +16,6 @@ pub trait DbEntity: Sized {
     }
     fn all(_conn: &PgConnection) -> Result<Vec<Self>, Error> {
         Ok(Vec::new())
-    }
-}
-
-impl DbEntity for Org {
-    fn by_id(conn: &PgConnection, id: i32) -> Result<Option<Self>, Error> {
-        use super::schema::orgs::dsl::*;
-        let result = orgs.filter(org_id.eq(id)).first::<Org>(conn).optional()?;
-
-        Ok(result)
-    }
-
-    fn all(conn: &PgConnection) -> Result<Vec<Self>, Error> {
-        use super::schema::orgs::dsl::*;
-        let results = orgs.load::<Org>(conn)?;
-
-        Ok(results)
     }
 }
 

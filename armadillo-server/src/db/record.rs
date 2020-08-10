@@ -150,10 +150,3 @@ make_record!(trailer, TrailerRecord, trailers, trailer_id, (
     trailers::name,
     trailers::location,
 ));
-
-// org
-#[rustfmt::skip]
-make_record!(org, OrgRecord, orgs, org_id, (
-    orgs::org_id,
-    orgs::name,
-));

@@ -15,7 +15,7 @@ use diesel::PgConnection;
 
 mod data;
 mod db;
-mod org;
+//mod org;
 mod trailer;
 
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
@@ -62,7 +62,6 @@ async fn main() -> std::io::Result<()> {
                     .route("/bike/{bike_id}", web::get().to(data::get_data::<db::BikeData>))
                     .route("/bike/{bike_id}", web::post().to(data::post_data::<db::BikeData>))
                     .route("/bike/{bike_id}/latest", web::get().to(data::get_latest_bike_data))
-                    .route("/bike/{bike_id}/org", web::get().to(org::get_org_id_for_bike))
                     .route("/oven/{oven_id}", web::get().to(data::get_data::<db::OvenData>))
                     .route("/oven/{oven_id}", web::post().to(data::post_data::<db::OvenData>))
                     .route(

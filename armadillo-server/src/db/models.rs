@@ -2,12 +2,6 @@ use serde::Serialize;
 use std::time::SystemTime;
 
 #[derive(Queryable, Serialize)]
-pub struct Org {
-    pub id: i32,
-    pub name: String,
-}
-
-#[derive(Queryable, Serialize)]
 pub struct Trailer {
     pub id: i32,
     pub name: String,

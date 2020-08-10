@@ -17,13 +17,6 @@ table! {
 }
 
 table! {
-    orgs (org_id) {
-        org_id -> Int4,
-        name -> Text,
-    }
-}
-
-table! {
     oven_data (oven_data_id, created_at) {
         oven_data_id -> Int4,
         oven -> Int4,
@@ -87,9 +80,9 @@ table! {
 table! {
     users (user_id) {
         user_id -> Int4,
-        trailer -> Int4,
         first_name -> Text,
         last_name -> Nullable<Text>,
+        trailer -> Int4,
     }
 }
 
@@ -107,7 +100,6 @@ joinable!(users -> trailers (trailer));
 allow_tables_to_appear_in_same_query!(
     bike_data,
     bikes,
-    orgs,
     oven_data,
     ovens,
     solar_microgrid_data,

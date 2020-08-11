@@ -1,7 +1,7 @@
 use serde::Serialize;
 
 type Id = i32;
-pub type Timestamp = i64;
+pub type Timestamp = u64;
 
 #[derive(Queryable, Serialize, Default, Debug)]
 pub struct Trailer {

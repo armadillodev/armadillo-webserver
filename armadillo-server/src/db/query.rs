@@ -1,7 +1,7 @@
 use crate::db::{Bike, Oven, Solar, Trailer};
 use crate::db::{Id, Timestamp};
 
-pub trait EntityQuery {
+pub trait DbAccess {
     // trailer methods
     fn find_trailer(&self, id: Id) -> Option<Trailer>;
     fn list_all_trailers(&self) -> Vec<Trailer>;

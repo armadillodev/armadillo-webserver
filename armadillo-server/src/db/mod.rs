@@ -1,8 +1,9 @@
 pub mod models;
+//mod schema;
+
 mod query;
 #[cfg(test)]
 mod test_query;
-//mod schema;
 
 //pub mod record;
 

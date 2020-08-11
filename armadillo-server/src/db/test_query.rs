@@ -1,4 +1,4 @@
-use crate::db::query::DbAccess;
+use crate::db::query::EntityQuery;
 use crate::db::{Bike, Oven, Solar, Trailer};
 use crate::db::{Id, Timestamp};
 
@@ -34,7 +34,7 @@ fn test_find_trailer_method<T: Default>(max: u32, id: Id) -> Vec<T> {
     (0..id).map(|_| T::default()).collect::<Vec<_>>()
 }
 
-impl DbAccess for TestDb {
+impl EntityQuery for TestDb {
     // trailer methods
     fn find_trailer(&self, id: Id) -> Option<Trailer> {
         test_find_method(self.trailer_count, id)

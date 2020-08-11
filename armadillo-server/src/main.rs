@@ -13,10 +13,10 @@ use actix_web::{web, App, HttpServer};
 use diesel::r2d2::{self, ConnectionManager};
 use diesel::PgConnection;
 
-mod data;
+//mod data;
 mod db;
 //mod org;
-mod trailer;
+//mod trailer;
 
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
@@ -53,6 +53,7 @@ async fn main() -> std::io::Result<()> {
 
     println!("starting server at: {}", bind);
 
+    /*
     HttpServer::new(move || {
         App::new()
             .data(pool.clone())
@@ -66,11 +67,11 @@ async fn main() -> std::io::Result<()> {
                     .route("/oven/{oven_id}", web::post().to(data::post_data::<db::OvenData>))
                     .route(
                         "/microgrid/{microgrid_id}",
-                        web::get().to(data::get_data::<db::SolarMicrogridData>),
+                        web::get().to(data::get_data::<db::SolarData>),
                     )
                     .route(
                         "/microgrid/{microgrid_id}",
-                        web::post().to(data::post_data::<db::SolarMicrogridData>),
+                        web::post().to(data::post_data::<db::SolarData>),
                     ),
             )
             .service(
@@ -82,4 +83,6 @@ async fn main() -> std::io::Result<()> {
     .bind(&bind)?
     .run()
     .await
+    */
+    Ok(())
 }

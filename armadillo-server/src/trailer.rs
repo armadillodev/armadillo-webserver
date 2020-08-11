@@ -1,7 +1,7 @@
 use diesel::PgConnection;
 use serde::Serialize;
 
-use crate::db::{Bike, DbEntity, Oven, SolarMicrogrid, Trailer};
+use crate::db::{Bike, DbEntity, Oven, Solar, Trailer};
 use crate::DbPool;
 use actix_web::{web, Error, Responder, HttpResponse};
 
@@ -38,7 +38,7 @@ impl TrailerNode {
                 .iter()
                 .map(|oven| oven.id)
                 .collect(),
-            microgrids: SolarMicrogrid::by_parent_id(conn, trailer_id)?
+            microgrids: Solar::by_parent_id(conn, trailer_id)?
                 .iter()
                 .map(|microgrid| microgrid.id)
                 .collect(),

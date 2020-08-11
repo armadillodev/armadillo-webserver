@@ -1,4 +1,4 @@
-use super::db::{Bike, DbEntity, Org, Oven, SolarMicrogrid, Trailer};
+use super::db::{Bike, DbEntity, Org, Oven, Solar, Trailer};
 use crate::DbPool;
 use actix_web::{web, Error, HttpResponse, Responder};
 use diesel::PgConnection;
@@ -57,7 +57,7 @@ impl OrgStructure {
                         .iter()
                         .map(|oven| OvenNode { id: oven.id })
                         .collect::<Vec<_>>(),
-                    microgrids: SolarMicrogrid::by_parent_id(conn, trailer.id)?
+                    microgrids: Solar::by_parent_id(conn, trailer.id)?
                         .iter()
                         .map(|microgrid| MicrogridNode { id: microgrid.id })
                         .collect::<Vec<_>>(),

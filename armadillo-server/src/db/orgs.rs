@@ -4,7 +4,7 @@ use diesel::prelude::*;
 use diesel::result::Error;
 use diesel::PgConnection;
 
-use super::models::{Bike, Oven, SolarMicrogrid, Trailer};
+use super::models::{Bike, Oven, Solar, Trailer};
 
 pub trait DbEntity: Sized {
     fn by_id(conn: &PgConnection, id: i32) -> Result<Option<Self>, Error>;
@@ -67,12 +67,12 @@ impl DbEntity for Oven {
     }
 }
 
-impl DbEntity for SolarMicrogrid {
+impl DbEntity for Solar {
     fn by_id(conn: &PgConnection, id: i32) -> Result<Option<Self>, Error> {
         use super::schema::solar_microgrids::dsl::*;
         let result = solar_microgrids
             .filter(solar_microgrid_id.eq(id))
-            .first::<SolarMicrogrid>(conn)
+            .first::<Solar>(conn)
             .optional()?;
 
         Ok(result)
@@ -80,7 +80,7 @@ impl DbEntity for SolarMicrogrid {
 
     fn by_parent_id(conn: &PgConnection, id: i32) -> Result<Vec<Self>, Error> {
         use super::schema::solar_microgrids::dsl::*;
-        let results = solar_microgrids.filter(trailer.eq(id)).load::<SolarMicrogrid>(conn);
+        let results = solar_microgrids.filter(trailer.eq(id)).load::<Solar>(conn);
 
         results
     }

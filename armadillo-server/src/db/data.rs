@@ -2,7 +2,7 @@ use diesel::prelude::*;
 use diesel::PgConnection;
 use serde::Deserialize;
 
-use super::models::{BikeData, OvenData, SolarMicrogridData};
+use super::models::{BikeData, OvenData, SolarData};
 use super::record::{BikeDataRecord, DataRecord, MicrogridDataRecord, OvenDataRecord};
 
 pub trait DataQuery: Sized + Send + Sync {
@@ -85,14 +85,14 @@ impl DataQuery for BikeData {
     }
 }
 
-// SolarMicrogridData
-impl DataQuery for SolarMicrogridData {
+// SolarData
+impl DataQuery for SolarData {
     type NewData = NewMicrogridData;
 
     fn find(conn: &PgConnection, solar_microgrid_id: i32, count: i32) -> Result<Vec<Self>, diesel::result::Error> {
         let data = MicrogridDataRecord::by_key_id(solar_microgrid_id)
             .limit(count as i64)
-            .load::<SolarMicrogridData>(conn)?;
+            .load::<SolarData>(conn)?;
 
         Ok(data)
     }

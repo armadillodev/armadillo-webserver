@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-pub type Id = u32;
+type Id = i32;
 pub type Timestamp = i64;
 
 #[derive(Queryable, Serialize, Default, Debug)]

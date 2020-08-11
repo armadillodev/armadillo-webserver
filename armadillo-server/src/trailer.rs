@@ -1,44 +1,42 @@
 use diesel::PgConnection;
+use diesel::result::Error as DieselError;
 use serde::Serialize;
-
-use crate::db::{Bike, DbEntity, Oven, Solar, Trailer};
-use crate::DbPool;
 use actix_web::{web, Error, Responder, HttpResponse};
 
-type Id = i32;
+use crate::db::{TrailerEntity, Db, Id};
+use crate::db::{Bike, Oven, Solar, Trailer};
+use crate::DbPool;
+
 
 #[derive(Serialize)]
 struct TrailerNode {
     name: String,
     location: String,
-    bikes: Vec<Id>,
-    ovens: Vec<Id>,
-    microgrids: Vec<Id>,
+    bikes: Vec<i32>,
+    ovens: Vec<i32>,
+    microgrids: Vec<i32>,
 }
 
 impl TrailerNode {
-    fn fetch(conn: &PgConnection, trailer_id: Id) -> Result<Option<Self>, diesel::result::Error> {
-        let trailer = Trailer::by_id(conn, trailer_id)?;
+    fn fetch(db: Db, trailer_id: Id) -> Result<Option<Self>, DieselError>{
+        let trailer = Trailer::id(&db, trailer_id)?;
 
-        // trailer
-        if trailer.is_none() {
-            return Ok(None);
-        }
+        if trailer.is_none() { return Ok(None); }
 
         let trailer = trailer.unwrap();
 
         let trailer_node = TrailerNode {
             name: trailer.name,
             location: trailer.location,
-            bikes: Bike::by_parent_id(conn, trailer_id)?
+            bikes: Bike::trailer_id(&db, trailer_id)?
                 .iter()
                 .map(|bike| bike.id)
                 .collect(),
-            ovens: Oven::by_parent_id(conn, trailer_id)?
+            ovens: Oven::trailer_id(&db, trailer_id)?
                 .iter()
                 .map(|oven| oven.id)
                 .collect(),
-            microgrids: Solar::by_parent_id(conn, trailer_id)?
+            microgrids: Solar::trailer_id(&db, trailer_id)?
                 .iter()
                 .map(|microgrid| microgrid.id)
                 .collect(),
@@ -53,7 +51,10 @@ pub async fn get_trailer_node(pool: web::Data<DbPool>, trailer_id: web::Path<Id>
     let trailer_id = trailer_id.into_inner();
     let conn = pool.get().expect("couldn't get connection from pool");
 
-    let trailer_node = web::block(move || TrailerNode::fetch(&conn, trailer_id))
+    let trailer_node = web::block(move || {
+        let db = Db(&conn);
+        TrailerNode::fetch(db, trailer_id)
+    })
         .await
         .map_err(|e| {
             error!("{}", e);
@@ -71,7 +72,10 @@ pub async fn get_trailer_node(pool: web::Data<DbPool>, trailer_id: web::Path<Id>
 pub async fn get_trailer_list(pool: web::Data<DbPool>) -> Result<impl Responder, Error> {
     let conn = pool.get().expect("couldn't get connection from pool");
 
-    let trailers = web::block(move || Trailer::all(&conn)).await.map_err(|e| {
+    let trailers = web::block(move || {
+        let db = Db(&conn);
+        Trailer::all(&db)
+    }).await.map_err(|e| {
         error!("{}", e);
         HttpResponse::InternalServerError().finish()
     })?;

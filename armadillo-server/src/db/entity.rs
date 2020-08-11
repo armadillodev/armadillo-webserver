@@ -1,58 +1,58 @@
 use super::models::{Bike, Oven, Solar, Trailer};
 
-use crate::db::query::DbAccess;
+use super::DbAccess;
 use crate::db::Id;
 
 pub trait TrailerEntity: Sized {
-    fn id(db: &impl DbAccess, id: Id) -> Option<Self>;
-    fn trailer_id(db: &impl DbAccess, trailer_id: Id) -> Vec<Self>;
-    fn all(db: &impl DbAccess) -> Vec<Self>;
+    fn id<A: DbAccess>(db: &A, id: Id) -> Result<Option<Self>, A::E>;
+    fn trailer_id<A: DbAccess>(db: &A, trailer_id: Id) -> Result<Vec<Self>, A::E>;
+    fn all<A: DbAccess>(db: &A) -> Result<Vec<Self>, A::E>;
 }
 
 impl TrailerEntity for Trailer {
-    fn id(db: &impl DbAccess, id: Id) -> Option<Self> {
+    fn id<A: DbAccess>(db: &A, id: Id) -> Result<Option<Self>, A::E> {
         db.find_trailer(id)
     }
-    fn trailer_id(_db: &impl DbAccess, _trailer_id: Id) -> Vec<Self> {
+    fn trailer_id<A: DbAccess>(_db: &A, _trailer_id: Id) -> Result<Vec<Self>, A::E> {
         panic!("Trailer doesn't belong to a trailer");
     }
-    fn all(db: &impl DbAccess) -> Vec<Self> {
+    fn all<A: DbAccess>(db: &A) -> Result<Vec<Self>, A::E> {
         db.list_all_trailers()
     }
 }
 
 impl TrailerEntity for Bike {
-    fn id(db: &impl DbAccess, id: Id) -> Option<Self> {
+    fn id<A: DbAccess>(db: &A, id: Id) -> Result<Option<Self>, A::E> {
         db.find_bike(id)
     }
-    fn trailer_id(db: &impl DbAccess, trailer_id: Id) -> Vec<Self> {
+    fn trailer_id<A: DbAccess>(db: &A, trailer_id: Id) -> Result<Vec<Self>, A::E> {
         db.find_trailer_bikes(trailer_id)
     }
-    fn all(_db: &impl DbAccess) -> Vec<Self> {
+    fn all<A: DbAccess>(_db: &A) -> Result<Vec<Self>, A::E> {
         panic!("bike lists are unsupported");
     }
 }
 
 impl TrailerEntity for Oven {
-    fn id(db: &impl DbAccess, id: Id) -> Option<Self> {
+    fn id<A: DbAccess>(db: &A, id: Id) -> Result<Option<Self>, A::E> {
         db.find_oven(id)
     }
-    fn trailer_id(db: &impl DbAccess, trailer_id: Id) -> Vec<Self> {
+    fn trailer_id<A: DbAccess>(db: &A, trailer_id: Id) -> Result<Vec<Self>, A::E> {
         db.find_trailer_ovens(trailer_id)
     }
-    fn all(_db: &impl DbAccess) -> Vec<Self> {
+    fn all<A: DbAccess>(_db: &A) -> Result<Vec<Self>, A::E> {
         panic!("oven lists are unsupported");
     }
 }
 
 impl TrailerEntity for Solar {
-    fn id(db: &impl DbAccess, id: Id) -> Option<Self> {
+    fn id<A: DbAccess>(db: &A, id: Id) -> Result<Option<Self>, A::E> {
         db.find_solar(id)
     }
-    fn trailer_id(db: &impl DbAccess, trailer_id: Id) -> Vec<Self> {
+    fn trailer_id<A: DbAccess>(db: &A, trailer_id: Id) -> Result<Vec<Self>, A::E> {
         db.find_trailer_solars(trailer_id)
     }
-    fn all(_db: &impl DbAccess) -> Vec<Self> {
+    fn all<A: DbAccess>(_db: &A) -> Result<Vec<Self>, A::E> {
         panic!("solar lists are unsupported");
     }
 }
@@ -73,7 +73,7 @@ mod tests {
         if id == 0 {
             TestResult::must_fail(move || Bike::id(&test_db, id))
         } else {
-            match Bike::id(&test_db, id) {
+            match Bike::id(&test_db, id).unwrap() {
                 Some(_) => {
                     if id <= db_length {
                         TestResult::passed()
@@ -96,21 +96,21 @@ mod tests {
     fn bike_query_bounds() {
         let test_db = TestDb::new(5);
 
-        assert!(Bike::id(&test_db, 5).is_some());
-        assert!(Bike::id(&test_db, 6).is_none());
+        assert!(Bike::id(&test_db, 5).unwrap().is_some());
+        assert!(Bike::id(&test_db, 6).unwrap().is_none());
 
-        assert_eq!(Bike::trailer_id(&test_db, 5).len(), 5);
-        assert_eq!(Bike::trailer_id(&test_db, 6).len(), 0);
+        assert_eq!(Bike::trailer_id(&test_db, 5).unwrap().len(), 5);
+        assert_eq!(Bike::trailer_id(&test_db, 6).unwrap().len(), 0);
     }
 
     #[test]
     fn trailer_query_bounds() {
         let test_db = TestDb::new(5);
 
-        assert!(Bike::id(&test_db, 5).is_some());
-        assert!(Bike::id(&test_db, 6).is_none());
+        assert!(Bike::id(&test_db, 5).unwrap().is_some());
+        assert!(Bike::id(&test_db, 6).unwrap().is_none());
 
-        assert_eq!(Bike::trailer_id(&test_db, 5).len(), 5);
-        assert_eq!(Bike::trailer_id(&test_db, 6).len(), 0);
+        assert_eq!(Bike::trailer_id(&test_db, 5).unwrap().len(), 5);
+        assert_eq!(Bike::trailer_id(&test_db, 6).unwrap().len(), 0);
     }
 }

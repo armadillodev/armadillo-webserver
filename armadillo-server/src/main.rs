@@ -1,5 +1,5 @@
-// #![feature(proc_macro_hygiene, decl_macro)]
-// #![recursion_limit = "256"]
+#![allow(dead_code)]
+#![allow(unused_imports)]
 
 #[macro_use]
 extern crate diesel;
@@ -16,7 +16,7 @@ use diesel::PgConnection;
 //mod data;
 mod db;
 //mod org;
-//mod trailer;
+mod trailer;
 
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
@@ -53,11 +53,11 @@ async fn main() -> std::io::Result<()> {
 
     println!("starting server at: {}", bind);
 
-    /*
     HttpServer::new(move || {
         App::new()
             .data(pool.clone())
             .wrap(Logger::default())
+            /*
             .service(
                 web::scope("/data")
                     .route("/bike/{bike_id}", web::get().to(data::get_data::<db::BikeData>))
@@ -74,6 +74,7 @@ async fn main() -> std::io::Result<()> {
                         web::post().to(data::post_data::<db::SolarData>),
                     ),
             )
+            */
             .service(
                 web::scope("/trailer")
                     .route("", web::get().to(trailer::get_trailer_list))
@@ -83,6 +84,4 @@ async fn main() -> std::io::Result<()> {
     .bind(&bind)?
     .run()
     .await
-    */
-    Ok(())
 }

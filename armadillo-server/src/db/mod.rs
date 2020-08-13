@@ -1,6 +1,7 @@
 mod models;
 mod schema;
 
+pub mod data;
 mod db;
 mod entity;
 mod query;
@@ -9,7 +10,6 @@ mod test_query;
 
 //pub mod record;
 
-//pub mod data;
 //pub mod orgs;
 
 use query::DbAccess;

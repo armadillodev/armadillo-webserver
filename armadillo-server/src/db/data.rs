@@ -1,113 +1,120 @@
-use diesel::prelude::*;
-use diesel::PgConnection;
 use serde::Deserialize;
 
 use super::models::{BikeData, OvenData, SolarData};
-use super::record::{BikeDataRecord, DataRecord, MicrogridDataRecord, OvenDataRecord};
+use crate::db::DbAccess;
+use crate::db::{Id, Timestamp};
 
-pub trait DataQuery: Sized + Send + Sync {
-    type NewData: Send;
-
-    fn find(conn: &PgConnection, id: i32, count: i32) -> Result<Vec<Self>, diesel::result::Error>;
-    fn insert(_conn: &PgConnection, _id: i32, _data: Self::NewData) -> Result<(), diesel::result::Error> {
-        Ok(())
-    }
+pub trait TrailerData: Sized {
+    type NewData;
+    fn find<A: DbAccess>(db: &A, id: Id, from: Timestamp, until: Timestamp) -> Result<Vec<Self>, A::E>;
+    fn insert<A: DbAccess>(db: &A, id: Id, epoch_time: u64, data: Self::NewData) -> Result<Self, A::E>;
 }
 
 // structs for creating new data
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone, PartialEq, Debug)]
 pub struct NewOvenData {
     pub temperature: Option<f32>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone, PartialEq, Debug)]
 pub struct NewBikeData {
     pub voltage: Option<i32>,
     pub rpm: Option<i32>,
     pub current: Option<i32>,
 }
 
-#[derive(Deserialize)]
-pub struct NewMicrogridData {
+#[derive(Deserialize, Clone, PartialEq, Debug)]
+pub struct NewSolarData {
     pub temperature: Option<f32>,
     pub power: Option<f32>,
 }
 
-// impl DbData and DataQuery
-// Oven Data
-impl DataQuery for OvenData {
-    type NewData = NewOvenData;
-
-    fn find(conn: &PgConnection, oven_id: i32, count: i32) -> Result<Vec<OvenData>, diesel::result::Error> {
-        let data = OvenDataRecord::by_key_id(oven_id)
-            .limit(count as i64)
-            .load::<OvenData>(conn)?;
-
-        Ok(data)
-    }
-
-    fn insert(conn: &PgConnection, oven_id: i32, data: Self::NewData) -> Result<(), diesel::result::Error> {
-        use super::schema::oven_data::dsl::*;
-
-        let _data = diesel::insert_into(oven_data)
-            .values((oven.eq(oven_id), temperature.eq(data.temperature)))
-            .execute(conn)?;
-
-        Ok(())
-    }
-}
-
-// BikeData
-impl DataQuery for BikeData {
+impl TrailerData for BikeData {
     type NewData = NewBikeData;
-
-    fn find(conn: &PgConnection, bike_id: i32, count: i32) -> Result<Vec<Self>, diesel::result::Error> {
-        let data = BikeDataRecord::by_key_id(bike_id)
-            .limit(count as i64)
-            .load::<BikeData>(conn)?;
-
-        Ok(data)
+    fn find<A: DbAccess>(db: &A, id: Id, from: Timestamp, until: Timestamp) -> Result<Vec<Self>, A::E> {
+        db.find_bike_data(id, from, until)
     }
-
-    fn insert(conn: &PgConnection, bike_id: i32, data: Self::NewData) -> Result<(), diesel::result::Error> {
-        use super::schema::bike_data::dsl::*;
-
-        let _data = diesel::insert_into(bike_data)
-            .values((
-                bike.eq(bike_id),
-                voltage.eq(data.voltage),
-                current.eq(data.current),
-                rpm.eq(data.rpm),
-            ))
-            .execute(conn)?;
-
-        Ok(())
+    fn insert<A: DbAccess>(db: &A, id: Id, epoch_time: u64, data: Self::NewData) -> Result<Self, A::E> {
+        db.insert_bike_data(BikeData {
+            id: 0,
+            created_at: epoch_time as i64,
+            bike: id as i32,
+            voltage: data.voltage,
+            current: data.current,
+            rpm: data.rpm,
+        })
+    }
+}
+impl TrailerData for OvenData {
+    type NewData = NewOvenData;
+    fn find<A: DbAccess>(db: &A, id: Id, from: Timestamp, until: Timestamp) -> Result<Vec<Self>, A::E> {
+        db.find_oven_data(id, from, until)
+    }
+    fn insert<A: DbAccess>(db: &A, id: Id, epoch_time: u64, data: Self::NewData) -> Result<Self, A::E> {
+        db.insert_oven_data(OvenData {
+            id: 0,
+            created_at: epoch_time as i64,
+            oven: id as i32,
+            temperature: data.temperature,
+        })
+    }
+}
+impl TrailerData for SolarData {
+    type NewData = NewSolarData;
+    fn find<A: DbAccess>(db: &A, id: Id, from: Timestamp, until: Timestamp) -> Result<Vec<Self>, A::E> {
+        db.find_solar_data(id, from, until)
+    }
+    fn insert<A: DbAccess>(db: &A, id: Id, epoch_time: u64, data: Self::NewData) -> Result<Self, A::E> {
+        db.insert_solar_data(SolarData {
+            id: 0,
+            created_at: epoch_time as i64,
+            solar: id as i32,
+            temperature: data.temperature,
+            power: data.power,
+        })
     }
 }
 
-// SolarData
-impl DataQuery for SolarData {
-    type NewData = NewMicrogridData;
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::db::test_query::TestDb;
 
-    fn find(conn: &PgConnection, solar_microgrid_id: i32, count: i32) -> Result<Vec<Self>, diesel::result::Error> {
-        let data = MicrogridDataRecord::by_key_id(solar_microgrid_id)
-            .limit(count as i64)
-            .load::<SolarData>(conn)?;
+    #[test]
+    fn insert_bike_data() {
+        use crate::time;
 
-        Ok(data)
+        let test_db = TestDb::new(5);
+
+        let test_bike_data = NewBikeData {
+            voltage: Some(5),
+            current: None,
+            rpm: Some(3),
+        };
+
+        let now = time::now();
+
+        let insert_data = BikeData::insert(&test_db, 1, now, test_bike_data.clone()).unwrap();
+
+        let expected_data = BikeData {
+            bike: 1,
+            created_at: now as i64,
+            voltage: test_bike_data.voltage,
+            current: test_bike_data.current,
+            rpm: test_bike_data.rpm,
+            ..BikeData::default()
+        };
+
+        assert_eq!(insert_data, expected_data);
     }
 
-    fn insert(conn: &PgConnection, solar_microgrid_id: i32, data: Self::NewData) -> Result<(), diesel::result::Error> {
-        use super::schema::solar_microgrid_data::dsl::*;
+    #[test]
+    fn find_bike_data() {
+        let test_db = TestDb::new(5);
 
-        let _data = diesel::insert_into(solar_microgrid_data)
-            .values((
-                solar_microgrid.eq(solar_microgrid_id),
-                power.eq(data.power),
-                temperature.eq(data.temperature),
-            ))
-            .execute(conn)?;
-
-        Ok(())
+        assert_eq!(BikeData::find(&test_db, 3, 0, 10).unwrap().len(), 10);
+        assert_eq!(BikeData::find(&test_db, 1, 0, 10).unwrap().len(), 10);
+        assert_eq!(BikeData::find(&test_db, 5, 5, 10).unwrap().len(), 5);
+        assert_eq!(BikeData::find(&test_db, 3, 0, 10).unwrap().len(), 10);
     }
 }

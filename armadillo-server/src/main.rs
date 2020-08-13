@@ -16,6 +16,7 @@ use diesel::PgConnection;
 //mod data;
 mod db;
 mod trailer;
+mod time;
 
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
 

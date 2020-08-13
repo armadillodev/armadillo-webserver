@@ -1,16 +1,16 @@
 use serde::Serialize;
 
 type Id = i32;
-pub type Timestamp = u64;
+pub type Timestamp = i64;
 
-#[derive(Queryable, Serialize, Default, Debug)]
+#[derive(Queryable, Serialize, Default, Debug, PartialEq, Clone)]
 pub struct Trailer {
     pub id: Id,
     pub name: String,
     pub location: String,
 }
 
-#[derive(Queryable, Serialize, Default, Debug)]
+#[derive(Queryable, Serialize, Default, Debug, PartialEq, Clone)]
 pub struct User {
     pub id: Id,
     pub org: i32,
@@ -18,26 +18,26 @@ pub struct User {
     pub last_name: Option<String>,
 }
 
-#[derive(Queryable, Serialize, Default, Debug)]
+#[derive(Queryable, Serialize, Default, Debug, PartialEq, Clone)]
 pub struct Oven {
     pub id: Id,
     pub trailer: i32,
 }
 
-#[derive(Queryable, Serialize, Default, Debug)]
+#[derive(Queryable, Serialize, Default, Debug, PartialEq, Clone)]
 pub struct Bike {
     pub id: Id,
     pub trailer: i32,
 }
 
-#[derive(Queryable, Serialize, Default, Debug)]
+#[derive(Queryable, Serialize, Default, Debug, PartialEq, Clone)]
 pub struct Solar {
     pub id: Id,
     pub trailer: i32,
     pub capacity: Option<f32>,
 }
 
-#[derive(Queryable, Serialize, Default, Debug)]
+#[derive(Queryable, Serialize, Default, Debug, PartialEq, Clone)]
 pub struct UserLog {
     pub id: Id,
     pub client: i32,
@@ -46,7 +46,7 @@ pub struct UserLog {
     pub time_end: i32,
 }
 
-#[derive(Queryable, Serialize, Default, Debug)]
+#[derive(Queryable, Serialize, Default, Debug, PartialEq, Clone)]
 pub struct TrailerData {
     pub id: Id,
     pub trailer: i32,
@@ -54,7 +54,7 @@ pub struct TrailerData {
     pub temperature: Option<i32>,
 }
 
-#[derive(Queryable, Serialize, Clone, Default, Debug)]
+#[derive(Queryable, Serialize, Default, Debug, PartialEq, Clone)]
 pub struct BikeData {
     pub id: Id,
     pub bike: i32,
@@ -64,7 +64,7 @@ pub struct BikeData {
     pub current: Option<i32>,
 }
 
-#[derive(Queryable, Serialize, Default, Debug)]
+#[derive(Queryable, Serialize, Default, Debug, PartialEq, Clone)]
 pub struct OvenData {
     pub id: Id,
     pub oven: i32,
@@ -72,10 +72,10 @@ pub struct OvenData {
     pub temperature: Option<f32>,
 }
 
-#[derive(Queryable, Serialize, Default, Debug)]
+#[derive(Queryable, Serialize, Default, Debug, PartialEq, Clone)]
 pub struct SolarData {
     pub id: Id,
-    pub solar_microgrid: Id,
+    pub solar: Id,
     pub created_at: Timestamp,
     pub temperature: Option<f32>,
     pub power: Option<f32>,

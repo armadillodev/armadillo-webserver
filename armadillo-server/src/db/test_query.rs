@@ -1,5 +1,6 @@
 use crate::db::query::DbAccess;
 use crate::db::{Bike, Oven, Solar, Trailer};
+use crate::db::{BikeData, OvenData, SolarData};
 use crate::db::{Id, Timestamp};
 
 pub struct TestDb {
@@ -34,6 +35,26 @@ fn test_find_trailer_method<T: Default>(max: u32, id: Id) -> Vec<T> {
     (1..=id).map(|_| T::default()).collect::<Vec<_>>()
 }
 
+fn test_find_data<T: Default>(id: Id, max: u32, from: Timestamp, until: Timestamp) -> Vec<T> {
+    if until < from {
+        panic!("time stamp issues. from: {}, until: {}", from, until);
+    }
+
+    if id == 0 {
+        panic!("invalid id");
+    }
+
+    if id > max {
+        return Vec::new();
+    }
+
+    (from..until).map(|_| T::default()).collect::<Vec<_>>()
+}
+
+fn test_insert_data<T: Default>(data: T) -> T {
+    data
+}
+
 impl DbAccess for TestDb {
     type E = std::convert::Infallible;
     // trailer methods
@@ -52,6 +73,14 @@ impl DbAccess for TestDb {
         Ok(test_find_trailer_method(self.trailer_count, trailer_id))
     }
 
+    // bike data methods
+    fn find_bike_data(&self, bike_id: Id, from: Timestamp, until: Timestamp) -> Result<Vec<BikeData>, Self::E> {
+        Ok(test_find_data(bike_id, self.trailer_count, from, until))
+    }
+    fn insert_bike_data(&self, bike_data: BikeData) -> Result<BikeData, Self::E> {
+        Ok(test_insert_data(bike_data))
+    }
+
     // oven methods
     fn find_oven(&self, id: Id) -> Result<Option<Oven>, Self::E> {
         Ok(test_find_method(self.trailer_count, id))
@@ -60,12 +89,28 @@ impl DbAccess for TestDb {
         Ok(test_find_trailer_method(self.trailer_count, trailer_id))
     }
 
+    // oven data methods
+    fn find_oven_data(&self, oven_id: Id, from: Timestamp, until: Timestamp) -> Result<Vec<OvenData>, Self::E> {
+        Ok(test_find_data(oven_id, self.trailer_count, from, until))
+    }
+    fn insert_oven_data(&self, oven_data: OvenData) -> Result<OvenData, Self::E> {
+        Ok(test_insert_data(oven_data))
+    }
+
     // solar methods
     fn find_solar(&self, id: Id) -> Result<Option<Solar>, Self::E> {
         Ok(test_find_method(self.trailer_count, id))
     }
     fn find_trailer_solars(&self, trailer_id: Id) -> Result<Vec<Solar>, Self::E> {
         Ok(test_find_trailer_method(self.trailer_count, trailer_id))
+    }
+
+    // solar data methods
+    fn find_solar_data(&self, solar_id: Id, from: Timestamp, until: Timestamp) -> Result<Vec<SolarData>, Self::E> {
+        Ok(test_find_data(solar_id, self.trailer_count, from, until))
+    }
+    fn insert_solar_data(&self, solar_data: SolarData) -> Result<SolarData, Self::E> {
+        Ok(test_insert_data(solar_data))
     }
 }
 
@@ -96,5 +141,23 @@ mod tests {
         assert!(test_db.find_bike(3).unwrap().is_some());
         assert!(test_db.find_bike(5).unwrap().is_some());
         assert!(test_db.find_bike(6).unwrap().is_none());
+    }
+
+    #[test]
+    fn find_data() {
+        let test_db = TestDb::new(5);
+
+        assert_eq!(test_db.find_bike_data(1, 0, 10).unwrap().len(), 10);
+        assert_eq!(test_db.find_bike_data(5, 0, 10).unwrap().len(), 10);
+        assert_eq!(test_db.find_bike_data(1, 5, 10).unwrap().len(), 5);
+        assert_eq!(test_db.find_bike_data(6, 0, 10).unwrap().len(), 0);
+    }
+
+    #[test]
+    fn insert_data() {
+        let test_db = TestDb::new(5);
+
+        let data = BikeData::default();
+        assert_eq!(test_db.insert_bike_data(data.clone()).unwrap(), data);
     }
 }

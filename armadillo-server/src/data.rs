@@ -1,28 +1,36 @@
 use actix_web::{web, Error, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 
-use super::db::DataQuery;
+use crate::db::data::TrailerData;
+use crate::db::data::{NewOvenData, NewBikeData, NewSolarData};
+use crate::db::{Db, Id, Timestamp};
+use crate::time;
 use crate::DbPool;
 
 #[derive(Deserialize)]
 pub struct Info {
-    count: Option<i32>,
+    from: Option<Timestamp>,
+    until: Option<Timestamp>,
 }
 
 // route for getting data
 pub async fn get_data<D>(
     pool: web::Data<DbPool>,
-    id: web::Path<i32>,
+    id: web::Path<Id>,
     info: web::Query<Info>,
 ) -> Result<impl Responder, Error>
 where
-    D: 'static + DataQuery + Serialize + Send,
+    D: 'static + TrailerData + Serialize + Send,
 {
     let id = id.into_inner();
     let conn = pool.get().expect("couldn't get db connection from pool");
-    let count = info.count.unwrap_or(100);
+    let from = info.from.unwrap_or(time::now()-60*5);
+    let until = info.until.unwrap_or(time::now());
 
-    let data = web::block(move || D::find(&conn, id, count)).await.map_err(|e| {
+    let data = web::block(move || {
+        let db = Db(&conn);
+        D::find(&db, id, from, until)
+    }).await.map_err(|e| {
         error!("{}", e);
         HttpResponse::InternalServerError().finish()
     })?;
@@ -37,25 +45,29 @@ where
 // route for posting data
 pub async fn post_data<D>(
     pool: web::Data<DbPool>,
-    id: web::Path<i32>,
+    id: web::Path<Id>,
     data: web::Json<D::NewData>,
 ) -> Result<impl Responder, Error>
 where
-    D: 'static + DataQuery + Serialize + Send,
+    D: 'static + TrailerData + Serialize + Send,
 {
     let id = id.into_inner();
     let conn = pool.get().expect("couldn't get connection from pool");
     let data = data.into_inner();
 
-    let _updated_data = web::block(move || D::insert(&conn, id, data)).await.map_err(|e| {
+    let updated_data = web::block(move || {
+        let db = Db(&conn);
+        D::insert(&db, id, time::now(), data)
+    }).await.map_err(|e| {
         error!("{}", e);
         HttpResponse::InternalServerError().finish()
     })?;
 
     // no need to send data back
-    Ok(HttpResponse::Ok().finish())
+    Ok(HttpResponse::Ok().json(updated_data))
 }
 
+/*
 pub async fn get_latest_bike_data(pool: web::Data<DbPool>, bike_id: web::Path<i32>) -> Result<impl Responder, Error> {
     let bike_id = bike_id.into_inner();
     let conn = pool.get().expect("couldn't get db connection from pool");
@@ -73,3 +85,4 @@ pub async fn get_latest_bike_data(pool: web::Data<DbPool>, bike_id: web::Path<i3
 
     Ok(HttpResponse::Ok().json(bike_data.pop().unwrap()))
 }
+*/

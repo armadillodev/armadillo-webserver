@@ -5,7 +5,7 @@ use crate::db::DbAccess;
 use crate::db::{Id, Timestamp};
 
 pub trait TrailerData: Sized {
-    type NewData;
+    type NewData: Send + Sync;
     fn find<A: DbAccess>(db: &A, id: Id, from: Timestamp, until: Timestamp) -> Result<Vec<Self>, A::E>;
     fn insert<A: DbAccess>(db: &A, id: Id, epoch_time: u64, data: Self::NewData) -> Result<Self, A::E>;
 }

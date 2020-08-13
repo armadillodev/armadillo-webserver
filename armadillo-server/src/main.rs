@@ -13,7 +13,7 @@ use actix_web::{web, App, HttpServer};
 use diesel::r2d2::{self, ConnectionManager};
 use diesel::PgConnection;
 
-//mod data;
+mod data;
 mod db;
 mod trailer;
 mod time;
@@ -57,24 +57,16 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .data(pool.clone())
             .wrap(Logger::default())
-            /*
             .service(
                 web::scope("/data")
                     .route("/bike/{bike_id}", web::get().to(data::get_data::<db::BikeData>))
                     .route("/bike/{bike_id}", web::post().to(data::post_data::<db::BikeData>))
-                    .route("/bike/{bike_id}/latest", web::get().to(data::get_latest_bike_data))
+                    //.route("/bike/{bike_id}/latest", web::get().to(data::get_latest_bike_data))
                     .route("/oven/{oven_id}", web::get().to(data::get_data::<db::OvenData>))
                     .route("/oven/{oven_id}", web::post().to(data::post_data::<db::OvenData>))
-                    .route(
-                        "/microgrid/{microgrid_id}",
-                        web::get().to(data::get_data::<db::SolarData>),
-                    )
-                    .route(
-                        "/microgrid/{microgrid_id}",
-                        web::post().to(data::post_data::<db::SolarData>),
-                    ),
+                    .route("/solar/{solar_id}", web::get().to(data::get_data::<db::SolarData>))
+                    .route("/solar/{solar_id}", web::post().to(data::post_data::<db::SolarData>))
             )
-            */
             .service(
                 web::scope("/trailer")
                     .route("", web::get().to(trailer::get_trailer_list))

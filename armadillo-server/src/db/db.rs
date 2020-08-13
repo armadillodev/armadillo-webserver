@@ -65,13 +65,22 @@ impl<'a> DbAccess for Db<'a> {
 
     // bike data methods
     fn find_bike_data(&self, bike_id: Id, from: Timestamp, until: Timestamp) -> Result<Vec<BikeData>, Self::E> {
-        find_data!(bike_data, BikeData, self.0, bike, bike_id as i32, from, until)
+        find_data!(
+            bike_data,
+            BikeData,
+            self.0,
+            bike,
+            bike_id as i32,
+            from as i64,
+            until as i64
+        )
     }
     fn insert_bike_data(&self, data: BikeData) -> Result<BikeData, Self::E> {
         use schema::bike_data::dsl::*;
 
         diesel::insert_into(bike_data)
             .values((
+                created_at.eq(data.created_at),
                 bike.eq(data.bike),
                 voltage.eq(data.voltage),
                 current.eq(data.current),
@@ -90,12 +99,24 @@ impl<'a> DbAccess for Db<'a> {
 
     // oven data methods
     fn find_oven_data(&self, oven_id: Id, from: Timestamp, until: Timestamp) -> Result<Vec<OvenData>, Self::E> {
-        find_data!(oven_data, OvenData, self.0, oven, oven_id as i32, from, until)
+        find_data!(
+            oven_data,
+            OvenData,
+            self.0,
+            oven,
+            oven_id as i32,
+            from as i64,
+            until as i64
+        )
     }
     fn insert_oven_data(&self, data: OvenData) -> Result<OvenData, Self::E> {
         use schema::oven_data::dsl::*;
         diesel::insert_into(oven_data)
-            .values((oven.eq(data.oven), temperature.eq(data.temperature)))
+            .values((
+                created_at.eq(data.created_at),
+                oven.eq(data.oven),
+                temperature.eq(data.temperature),
+            ))
             .get_result::<OvenData>(self.0)
     }
 
@@ -115,8 +136,8 @@ impl<'a> DbAccess for Db<'a> {
             self.0,
             solar_microgrid,
             solar_id as i32,
-            from,
-            until
+            from as i64,
+            until as i64
         )
     }
     fn insert_solar_data(&self, data: SolarData) -> Result<SolarData, Self::E> {
@@ -124,6 +145,7 @@ impl<'a> DbAccess for Db<'a> {
 
         diesel::insert_into(solar_microgrid_data)
             .values((
+                created_at.eq(data.created_at),
                 solar_microgrid.eq(data.solar),
                 power.eq(data.power),
                 temperature.eq(data.temperature),

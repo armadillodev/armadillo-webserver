@@ -2,11 +2,12 @@ use diesel::prelude::*;
 use diesel::result::Error;
 use diesel::PgConnection;
 
-use super::schema;
-use super::DbAccess;
-use super::{Bike, Oven, Solar, Trailer};
-use super::{BikeData, OvenData, SolarData};
-use super::{Id, Timestamp};
+use armadillo_core::DbAccess;
+use armadillo_core::{Bike, Oven, Solar, Trailer};
+use armadillo_core::{BikeData, OvenData, SolarData};
+use armadillo_core::{Id, Timestamp};
+
+use crate::schema;
 
 pub struct Db<'a>(pub &'a PgConnection);
 
@@ -32,15 +33,9 @@ macro_rules! find_data {
             .order(created_at.desc())
             .filter(created_at.ge($from))
             .filter(created_at.lt($until))
+            // about a month of data as a limit
+            .limit(60 * 60 * 24 * 30)
             .load::<$model>($conn)
-    }};
-}
-
-macro_rules! insert_data {
-    ($scheme:ident, $model:ident, $conn: expr, $data:expr) => {{
-        diesel::insert_into($schema)
-            .values($data)
-            .get_result::<Option<$model>>($conn)
     }};
 }
 

@@ -1,7 +1,7 @@
-use crate::db::query::DbAccess;
-use crate::db::{Bike, Oven, Solar, Trailer};
-use crate::db::{BikeData, OvenData, SolarData};
-use crate::db::{Id, Timestamp};
+use crate::query::DbAccess;
+use crate::{Bike, Oven, Solar, Trailer};
+use crate::{BikeData, OvenData, SolarData};
+use crate::{Id, Timestamp};
 
 pub struct TestDb {
     trailer_count: u32,

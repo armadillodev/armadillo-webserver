@@ -1,7 +1,7 @@
 use super::models::{Bike, Oven, Solar, Trailer};
 
-use super::DbAccess;
-use crate::db::Id;
+use crate::DbAccess;
+use crate::Id;
 
 pub trait TrailerEntity: Sized {
     fn id<A: DbAccess>(db: &A, id: Id) -> Result<Option<Self>, A::E>;
@@ -60,7 +60,7 @@ impl TrailerEntity for Solar {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::db::test_query::TestDb;
+    use crate::test_query::TestDb;
 
     use quickcheck::TestResult;
     use quickcheck_macros::quickcheck as qc;

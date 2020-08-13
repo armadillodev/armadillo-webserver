@@ -2,11 +2,9 @@ use diesel::PgConnection;
 use diesel::result::Error as DieselError;
 use serde::Serialize;
 use actix_web::{web, Error, Responder, HttpResponse};
-
-use crate::db::{TrailerEntity, Db, Id};
-use crate::db::{Bike, Oven, Solar, Trailer};
-use crate::DbPool;
-
+use armadillo_database::{DbPool, Db};
+use armadillo_core::{TrailerEntity, Id};
+use armadillo_core::{Bike, Oven, Solar, Trailer};
 
 #[derive(Serialize)]
 struct TrailerNode {

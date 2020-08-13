@@ -1,6 +1,6 @@
-use crate::db::{Bike, Oven, Solar, Trailer};
-use crate::db::{BikeData, OvenData, SolarData};
-use crate::db::{Id, Timestamp};
+use crate::{Bike, Oven, Solar, Trailer};
+use crate::{BikeData, OvenData, SolarData};
+use crate::{Id, Timestamp};
 
 pub trait DbAccess {
     type E: std::error::Error;

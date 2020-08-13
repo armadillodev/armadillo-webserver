@@ -1,3 +1,4 @@
+use diesel::Queryable;
 use serde::Serialize;
 
 type Id = i32;

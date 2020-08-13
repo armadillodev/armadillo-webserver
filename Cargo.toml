@@ -2,4 +2,5 @@
 members = [
     "armadillo-server",
     "armadillo-core",
+    "armadillo-database",
 ]

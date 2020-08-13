@@ -2,36 +2,16 @@
 #![allow(unused_imports)]
 
 #[macro_use]
-extern crate diesel;
-#[macro_use]
-extern crate diesel_migrations;
-#[macro_use]
 extern crate log;
 
 use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
-use diesel::r2d2::{self, ConnectionManager};
-use diesel::PgConnection;
+use armadillo_database::{DbPool, connect_to_pool};
+use armadillo_core::{BikeData, SolarData, OvenData};
 
 mod data;
-mod db;
 mod trailer;
 mod time;
-
-type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
-
-// run migrations on database
-embed_migrations!();
-
-fn run_db_migrations(pool: DbPool) -> Result<(), String> {
-    let conn = pool.get().expect("couldn't get db connection from pool");
-
-    if let Err(e) = embedded_migrations::run(&conn) {
-        return Err(format!("Failed to run database migrations: {:?}", e));
-    }
-
-    Ok(())
-}
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
@@ -40,13 +20,7 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
 
     // setup database connection pool
-    let connspec =
-        std::env::var("DATABASE_URL").unwrap_or("postgres://postgres:postgres@localhost/armadillo".to_string());
-    let manager = ConnectionManager::<PgConnection>::new(connspec);
-    let pool = r2d2::Pool::builder().build(manager).expect("Failed to build pool");
-
-    // run migrations
-    run_db_migrations(pool.clone()).unwrap();
+    let pool = connect_to_pool();
 
     // start server
     let bind = std::env::var("BIND_TO").unwrap_or(String::from("0.0.0.0:3001"));
@@ -59,13 +33,14 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::default())
             .service(
                 web::scope("/data")
-                    .route("/bike/{bike_id}", web::get().to(data::get_data::<db::BikeData>))
-                    .route("/bike/{bike_id}", web::post().to(data::post_data::<db::BikeData>))
+                    .route("/bike/{bike_id}", web::get().to(data::get_json_data_route::<BikeData>))
+                    .route("/bike/{bike_id}/csv", web::get().to(data::get_csv_data_route::<BikeData>))
+                    .route("/bike/{bike_id}", web::post().to(data::post_data::<BikeData>))
                     //.route("/bike/{bike_id}/latest", web::get().to(data::get_latest_bike_data))
-                    .route("/oven/{oven_id}", web::get().to(data::get_data::<db::OvenData>))
-                    .route("/oven/{oven_id}", web::post().to(data::post_data::<db::OvenData>))
-                    .route("/solar/{solar_id}", web::get().to(data::get_data::<db::SolarData>))
-                    .route("/solar/{solar_id}", web::post().to(data::post_data::<db::SolarData>))
+                    .route("/oven/{oven_id}", web::get().to(data::get_json_data_route::<OvenData>))
+                    .route("/oven/{oven_id}", web::post().to(data::post_data::<OvenData>))
+                    .route("/solar/{solar_id}", web::get().to(data::get_json_data_route::<SolarData>))
+                    .route("/solar/{solar_id}", web::post().to(data::post_data::<SolarData>))
             )
             .service(
                 web::scope("/trailer")

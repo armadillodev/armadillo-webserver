@@ -1,11 +1,10 @@
-use actix_web::{web, Error, HttpResponse, Responder};
+use actix_web::{web, Error, HttpResponse, Responder, http};
 use serde::{Deserialize, Serialize};
+use armadillo_database::{DbPool, Db};
+use armadillo_core::data::*;
+use armadillo_core::{Id, Timestamp};
 
-use crate::db::data::TrailerData;
-use crate::db::data::{NewOvenData, NewBikeData, NewSolarData};
-use crate::db::{Db, Id, Timestamp};
 use crate::time;
-use crate::DbPool;
 
 #[derive(Deserialize)]
 pub struct Info {
@@ -13,11 +12,34 @@ pub struct Info {
     until: Option<Timestamp>,
 }
 
+pub async fn get_csv_data_route<D>(
+    pool: web::Data<DbPool>,
+    id: web::Path<Id>,
+    info: web::Query<Info>,
+) -> Result<impl Responder, Error>
+where
+    D: 'static + TrailerData + Serialize + Send,
+{
+    get_data::<D>(pool, id, info, true).await
+}
+
+pub async fn get_json_data_route<D>(
+    pool: web::Data<DbPool>,
+    id: web::Path<Id>,
+    info: web::Query<Info>,
+) -> Result<impl Responder, Error>
+where
+    D: 'static + TrailerData + Serialize + Send,
+{
+    get_data::<D>(pool, id, info, false).await
+}
+
 // route for getting data
 pub async fn get_data<D>(
     pool: web::Data<DbPool>,
     id: web::Path<Id>,
     info: web::Query<Info>,
+    csv: bool,
 ) -> Result<impl Responder, Error>
 where
     D: 'static + TrailerData + Serialize + Send,
@@ -38,7 +60,23 @@ where
     if data.len() == 0 {
         Ok(HttpResponse::NotFound().body(format!("no data with id: {} was found for {}", id, std::any::type_name::<D>())))
     } else {
-        Ok(HttpResponse::Ok().json(data))
+        if csv {
+            // return csv record
+            let mut wtr = csv::Writer::from_writer(vec![]);
+            for data_point in data {
+                wtr.serialize(data_point).unwrap();
+            }
+            let data = String::from_utf8(wtr.into_inner().unwrap()).unwrap();
+
+            Ok(HttpResponse::Ok()
+                .content_type("test/csv")
+                .set_header(http::header::CONTENT_DISPOSITION, "attachment;filename=trailer_data.csv")
+                .body(data)
+            )
+        } else {
+            // return json data
+            Ok(HttpResponse::Ok().json(data))
+        }
     }
 }
 

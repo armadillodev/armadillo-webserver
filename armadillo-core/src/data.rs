@@ -1,8 +1,8 @@
 use serde::Deserialize;
 
 use super::models::{BikeData, OvenData, SolarData};
-use crate::db::DbAccess;
-use crate::db::{Id, Timestamp};
+use crate::DbAccess;
+use crate::{Id, Timestamp};
 
 pub trait TrailerData: Sized {
     type NewData: Send + Sync;
@@ -78,12 +78,10 @@ impl TrailerData for SolarData {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::db::test_query::TestDb;
+    use crate::test_query::TestDb;
 
     #[test]
     fn insert_bike_data() {
-        use crate::time;
-
         let test_db = TestDb::new(5);
 
         let test_bike_data = NewBikeData {
@@ -92,7 +90,7 @@ mod tests {
             rpm: Some(3),
         };
 
-        let now = time::now();
+        let now = 105;
 
         let insert_data = BikeData::insert(&test_db, 1, now, test_bike_data.clone()).unwrap();
 

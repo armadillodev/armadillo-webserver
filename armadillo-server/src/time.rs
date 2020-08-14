@@ -7,3 +7,8 @@ pub fn now() -> u64 {
         .as_secs()
 }
 
+use actix_web::{Responder, HttpResponse};
+
+pub async fn time_route() -> impl Responder {
+    HttpResponse::Ok().body(now().to_string())
+}

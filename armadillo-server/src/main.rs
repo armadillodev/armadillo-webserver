@@ -47,6 +47,7 @@ async fn main() -> std::io::Result<()> {
                     .route("", web::get().to(trailer::get_trailer_list))
                     .route("/{trailer_id}", web::get().to(trailer::get_trailer_node)),
             )
+            .route("/time", web::get().to(time::time_route))
     })
     .bind(&bind)?
     .run()

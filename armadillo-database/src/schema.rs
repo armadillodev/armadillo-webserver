@@ -1,6 +1,5 @@
 table! {
-    bike_data (bike_data_id, created_at) {
-        bike_data_id -> Int4,
+    bike_data (bike, created_at) {
         bike -> Int4,
         created_at -> Int8,
         voltage -> Nullable<Int4>,
@@ -17,8 +16,7 @@ table! {
 }
 
 table! {
-    oven_data (oven_data_id, created_at) {
-        oven_data_id -> Int4,
+    oven_data (oven, created_at) {
         oven -> Int4,
         created_at -> Int8,
         temperature -> Nullable<Float4>,
@@ -33,8 +31,7 @@ table! {
 }
 
 table! {
-    solar_microgrid_data (solar_microgrid_data_id, created_at) {
-        solar_microgrid_data_id -> Int4,
+    solar_microgrid_data (solar_microgrid, created_at) {
         solar_microgrid -> Int4,
         created_at -> Int8,
         temperature -> Nullable<Float4>,

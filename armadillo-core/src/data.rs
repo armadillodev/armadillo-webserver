@@ -36,7 +36,6 @@ impl TrailerData for BikeData {
     }
     fn insert<A: DbAccess>(db: &A, id: Id, epoch_time: u64, data: Self::NewData) -> Result<Self, A::E> {
         db.insert_bike_data(BikeData {
-            id: 0,
             created_at: epoch_time as i64,
             bike: id as i32,
             voltage: data.voltage,
@@ -52,7 +51,6 @@ impl TrailerData for OvenData {
     }
     fn insert<A: DbAccess>(db: &A, id: Id, epoch_time: u64, data: Self::NewData) -> Result<Self, A::E> {
         db.insert_oven_data(OvenData {
-            id: 0,
             created_at: epoch_time as i64,
             oven: id as i32,
             temperature: data.temperature,
@@ -66,7 +64,6 @@ impl TrailerData for SolarData {
     }
     fn insert<A: DbAccess>(db: &A, id: Id, epoch_time: u64, data: Self::NewData) -> Result<Self, A::E> {
         db.insert_solar_data(SolarData {
-            id: 0,
             created_at: epoch_time as i64,
             solar: id as i32,
             temperature: data.temperature,

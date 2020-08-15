@@ -49,16 +49,14 @@ pub struct UserLog {
 
 #[derive(Queryable, Serialize, Default, Debug, PartialEq, Clone)]
 pub struct TrailerData {
-    pub id: Id,
-    pub trailer: i32,
+    pub trailer: Id,
     pub created_at: i32,
     pub temperature: Option<i32>,
 }
 
 #[derive(Queryable, Serialize, Default, Debug, PartialEq, Clone)]
 pub struct BikeData {
-    pub id: Id,
-    pub bike: i32,
+    pub bike: Id,
     pub created_at: Timestamp,
     pub voltage: Option<i32>,
     pub rpm: Option<i32>,
@@ -67,15 +65,13 @@ pub struct BikeData {
 
 #[derive(Queryable, Serialize, Default, Debug, PartialEq, Clone)]
 pub struct OvenData {
-    pub id: Id,
-    pub oven: i32,
+    pub oven: Id,
     pub created_at: Timestamp,
     pub temperature: Option<f32>,
 }
 
 #[derive(Queryable, Serialize, Default, Debug, PartialEq, Clone)]
 pub struct SolarData {
-    pub id: Id,
     pub solar: Id,
     pub created_at: Timestamp,
     pub temperature: Option<f32>,

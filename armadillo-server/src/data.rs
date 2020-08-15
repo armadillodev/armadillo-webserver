@@ -95,13 +95,19 @@ where
 
     let updated_data = web::block(move || {
         let db = Db(&conn);
-        D::insert(&db, id, time::now(), data)
-    }).await.map_err(|e| {
+        
+        // check if there is already a record for this second
+        if D::find(&db, id, time::now(), time::now() + 1)?.len() != 0 {
+            return Ok(None);
+        }
+
+        D::insert(&db, id, time::now(), data).map(|v| Some(v))
+    })
+    .await.map_err(|e| {
         error!("{}", e);
         HttpResponse::InternalServerError().finish()
     })?;
 
-    // no need to send data back
     Ok(HttpResponse::Ok().json(updated_data))
 }
 

@@ -16,7 +16,7 @@ mod time;
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
     // setup logging
-    std::env::set_var("RUST_LOG", "info");
+    //std::env::set_var("RUST_LOG", "info");
     env_logger::init();
 
     // setup database connection pool

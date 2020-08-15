@@ -1,0 +1,4 @@
+-- Your SQL goes here
+DROP TABLE IF EXISTS "users" CASCADE;
+DROP TABLE IF EXISTS "trailer_data" CASCADE;
+DROP TABLE IF EXISTS "user_logs" CASCADE;

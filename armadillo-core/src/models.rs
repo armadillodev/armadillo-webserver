@@ -12,14 +12,6 @@ pub struct Trailer {
 }
 
 #[derive(Queryable, Serialize, Default, Debug, PartialEq, Clone)]
-pub struct User {
-    pub id: Id,
-    pub org: i32,
-    pub first_name: String,
-    pub last_name: Option<String>,
-}
-
-#[derive(Queryable, Serialize, Default, Debug, PartialEq, Clone)]
 pub struct Oven {
     pub id: Id,
     pub trailer: i32,
@@ -36,22 +28,6 @@ pub struct Solar {
     pub id: Id,
     pub trailer: i32,
     pub capacity: Option<f32>,
-}
-
-#[derive(Queryable, Serialize, Default, Debug, PartialEq, Clone)]
-pub struct UserLog {
-    pub id: Id,
-    pub client: i32,
-    pub bike: i32,
-    pub time_start: i32,
-    pub time_end: i32,
-}
-
-#[derive(Queryable, Serialize, Default, Debug, PartialEq, Clone)]
-pub struct TrailerData {
-    pub trailer: Id,
-    pub created_at: i32,
-    pub temperature: Option<i32>,
 }
 
 #[derive(Queryable, Serialize, Default, Debug, PartialEq, Clone)]

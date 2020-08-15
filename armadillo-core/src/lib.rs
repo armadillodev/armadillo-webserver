@@ -13,6 +13,6 @@ mod test_query;
 pub use entity::TrailerEntity;
 pub use query::DbAccess;
 
-pub use models::{Bike, BikeData, Oven, OvenData, Solar, SolarData, Trailer, User};
+pub use models::{Bike, BikeData, Oven, OvenData, Solar, SolarData, Trailer};
 pub type Id = u32;
 pub type Timestamp = u64;

@@ -12,7 +12,7 @@ struct TrailerNode {
     location: String,
     bikes: Vec<i32>,
     ovens: Vec<i32>,
-    microgrids: Vec<i32>,
+    solars: Vec<i32>,
 }
 
 impl TrailerNode {
@@ -34,9 +34,9 @@ impl TrailerNode {
                 .iter()
                 .map(|oven| oven.id)
                 .collect(),
-            microgrids: Solar::trailer_id(&db, trailer_id)?
+            solars: Solar::trailer_id(&db, trailer_id)?
                 .iter()
-                .map(|microgrid| microgrid.id)
+                .map(|solar| solar.id)
                 .collect(),
         };
 

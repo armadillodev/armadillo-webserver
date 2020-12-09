@@ -24,6 +24,7 @@ async fn main() -> std::io::Result<()> {
 
     // start server
     let bind = std::env::var("PORT").unwrap_or(String::from("0.0.0.0:3001"));
+    let bind = format!("0.0.0.0:{}", bind);
 
     println!("starting server at: {}", bind);
 

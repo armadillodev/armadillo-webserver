@@ -23,7 +23,7 @@ async fn main() -> std::io::Result<()> {
     let pool = connect_to_pool();
 
     // start server
-    let bind = std::env::var("BIND_TO").unwrap_or(String::from("0.0.0.0:3001"));
+    let bind = std::env::var("PORT").unwrap_or(String::from("0.0.0.0:3001"));
 
     println!("starting server at: {}", bind);
 
